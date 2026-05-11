@@ -1,0 +1,73 @@
+{
+  "source": "Jimpae public patch notes",
+  "updatedAt": "2026-05-11T16:34:39.380379+00:00",
+  "sourceHash": "7ad547c998431d588ed48364833dbbaad2d3b928176591372b7ac45fa33dd55c",
+  "entries": [
+    {
+      "date": "2026-05-11",
+      "category": "Minecraft",
+      "title": "!heal 藥水視覺效果",
+      "body": "!heal 而家會喺玩家腳邊掉落 Instant Health II splash potion，治療強度同之前一樣，但畫面效果更清楚。"
+    },
+    {
+      "date": "2026-05-11",
+      "category": "StreamChat / Overlay",
+      "title": "版面位置同大小儲存修復",
+      "body": "修復設定視窗改完 overlay 位置或大小後，切換模式會被舊 layout 覆蓋嘅問題。Prediction、Karma、Tip Jar、Emote Spawn、System Message 等 widget 嘅位置 / scale 會正確保留。"
+    },
+    {
+      "date": "2026-05-11",
+      "category": "Minecraft",
+      "title": "金錢獸安全區延遲召喚",
+      "body": "如果 Tip Jar 滿咗但所有玩家都喺安全區，金錢獸會先暫停登場，overlay 會提示：⚠️ Tip Jar 滿了！金錢獸準備登場，請離開安全區！。玩家離開安全區後即刻召喚；參與者 +50 占幣獎勵仍然會即時派。"
+    },
+    {
+      "date": "2026-05-11",
+      "category": "Minecraft",
+      "title": "友善生物兌換",
+      "body": "新增 !villager、!cow、!horse，友善生物可以喺安全區使用；敵對、TNT 同效果類兌換仍會受安全保護限制。"
+    },
+    {
+      "date": "2026-05-10",
+      "category": "StreamChat / Gear",
+      "title": "新裝備：MC Pickaxe",
+      "body": "新增 !buygear mcpickaxe，價錢 250 占幣；購買後系統會嘗試送出並套用到角色。"
+    },
+    {
+      "date": "2026-05-10",
+      "category": "Minecraft",
+      "title": "Minecraft 兌換安全加強",
+      "body": "改善扣占幣、退款同安全區判斷：如果伺服器暫時不可用或召喚失敗，系統會盡量避免錯扣占幣。"
+    },
+    {
+      "date": "2026-05-10",
+      "category": "LiveChat",
+      "title": "LiveChat 頭像彈窗改善",
+      "body": "拖出 livechat 訊息時，彈窗會使用同一套角色頭像 render 系統，顯示更一致。"
+    },
+    {
+      "date": "2026-05-08",
+      "category": "StreamChat / Overlay",
+      "title": "彈幕 [Danmaku] 更順",
+      "body": "改善大量訊息時嘅彈幕排位，減少重疊同突然消失，特別係 Twitch burst chat 場景。"
+    },
+    {
+      "date": "2026-05-07",
+      "category": "占幣 [PTS]",
+      "title": "占幣經濟更新",
+      "body": "有效參與 !bet 會加 5 占幣；金錢獸參與者可獲 50 占幣；直播完結領占幣預設為 0 cost / 50 reward。"
+    },
+    {
+      "date": "2026-05-07",
+      "category": "占幣 [PTS]",
+      "title": "!daily 穩定性修復",
+      "body": "修復每日領占幣可能令程式卡住嘅問題，降低占幣資料被鎖住嘅機會。"
+    },
+    {
+      "date": "2026-05-03",
+      "category": "Minecraft",
+      "title": "Minecraft 兌換排隊顯示",
+      "body": "新增 Minecraft 兌換排隊 overlay，觀眾可以更清楚見到兌換排隊狀態。"
+    }
+  ]
+}
