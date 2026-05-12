@@ -1,0 +1,10 @@
+name = "jimpae-leaderboard-api"
+main = "worker/leaderboard-api.js"
+compatibility_date = "2026-05-12"
+account_id = "293544a66dd3f3fdcc5538df16295520"
+
+workers_dev = true
+
+[[kv_namespaces]]
+binding = "JIMPAE_LEADERBOARD"
+id = "8cd32c5af7f84f5383c92e3699b2263a"

@@ -130,9 +130,16 @@
       updateSchedule();
       loadPatchNotes();
       try{
-        const res = await fetch('assets/leaderboard.json', {cache:'no-store'});
-        if(!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+        let data;
+        try{
+          const res = await fetch('https://jimpae-leaderboard-api.jimpae00.workers.dev/leaderboard.json', {cache:'no-store'});
+          if(!res.ok) throw new Error(`HTTP ${res.status}`);
+          data = await res.json();
+        }catch(remoteErr){
+          const res = await fetch('assets/leaderboard.json', {cache:'no-store'});
+          if(!res.ok) throw new Error(`Remote ${remoteErr.message}; fallback HTTP ${res.status}`);
+          data = await res.json();
+        }
         state.entries = data.entries || []; state.total = data.total || state.entries.length;
         const d = data.updatedAt ? new Date(data.updatedAt) : null;
         $('syncBottom').textContent = d ? `最後同步：${d.toLocaleString('zh-HK', {hour12:false})}` : '已載入';
