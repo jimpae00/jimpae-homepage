@@ -1,8 +1,32 @@
 {
   "source": "Jimpae public patch notes",
-  "updatedAt": "2026-05-11T16:34:39.380379+00:00",
-  "sourceHash": "7ad547c998431d588ed48364833dbbaad2d3b928176591372b7ac45fa33dd55c",
+  "updatedAt": "2026-05-12T10:19:29.006539+00:00",
+  "sourceHash": "01bf4565ca2a20366f36a6f497887994c22992c00e77cb9ad2eb99ea95a15460",
   "entries": [
+    {
+      "date": "2026-05-12",
+      "category": "Minecraft",
+      "title": "村民不再發光 [glow]",
+      "body": "!villager 召喚出嚟嘅村民唔再有發光效果，畫面會自然啲；其他召喚仍保留原有辨識效果。"
+    },
+    {
+      "date": "2026-05-12",
+      "category": "Minecraft",
+      "title": "召喚兌換提示音",
+      "body": "Minecraft 召喚類兌換加咗清楚嘅傳送聲效，玩家會更易知道兌換已經觸發。"
+    },
+    {
+      "date": "2026-05-12",
+      "category": "Minecraft",
+      "title": "Karma 滿點獎勵",
+      "body": "Karma 去到 100 時，今輪推高 Karma 嘅觀眾會額外收到 +10 占幣；原本回贈仍然保留。"
+    },
+    {
+      "date": "2026-05-12",
+      "category": "Minecraft",
+      "title": "Karma 歸零治療演出",
+      "body": "Karma 歸零時會清除負面效果，並改為投擲治療藥水，畫面提示會更清楚。"
+    },
     {
       "date": "2026-05-11",
       "category": "Minecraft",
@@ -11,15 +35,9 @@
     },
     {
       "date": "2026-05-11",
-      "category": "StreamChat / Overlay",
-      "title": "版面位置同大小儲存修復",
-      "body": "修復設定視窗改完 overlay 位置或大小後，切換模式會被舊 layout 覆蓋嘅問題。Prediction、Karma、Tip Jar、Emote Spawn、System Message 等 widget 嘅位置 / scale 會正確保留。"
-    },
-    {
-      "date": "2026-05-11",
       "category": "Minecraft",
       "title": "金錢獸安全區延遲召喚",
-      "body": "如果 Tip Jar 滿咗但所有玩家都喺安全區，金錢獸會先暫停登場，overlay 會提示：⚠️ Tip Jar 滿了！金錢獸準備登場，請離開安全區！。玩家離開安全區後即刻召喚；參與者 +50 占幣獎勵仍然會即時派。"
+      "body": "如果 Tip Jar 滿咗但所有玩家都喺安全區，金錢獸會先暫停登場，畫面會提示：⚠️ Tip Jar 滿了！金錢獸準備登場，請離開安全區！。玩家離開安全區後即刻召喚；參與者 +50 占幣獎勵仍然會即時派。"
     },
     {
       "date": "2026-05-11",
@@ -47,7 +65,7 @@
     },
     {
       "date": "2026-05-08",
-      "category": "StreamChat / Overlay",
+      "category": "LiveChat / 彈幕",
       "title": "彈幕 [Danmaku] 更順",
       "body": "改善大量訊息時嘅彈幕排位，減少重疊同突然消失，特別係 Twitch burst chat 場景。"
     },
@@ -67,7 +85,7 @@
       "date": "2026-05-03",
       "category": "Minecraft",
       "title": "Minecraft 兌換排隊顯示",
-      "body": "新增 Minecraft 兌換排隊 overlay，觀眾可以更清楚見到兌換排隊狀態。"
+      "body": "新增 Minecraft 兌換排隊顯示，觀眾可以更清楚見到兌換排隊狀態。"
     }
   ]
 }
