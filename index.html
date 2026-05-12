@@ -86,13 +86,32 @@
       $('boardSub').textContent = matches.length ? `搜尋結果：${matches.length} 人` : 'Top players';
     }
 
+    function groupPatchNotes(entries){
+      const groups = [];
+      const byKey = new Map();
+      (entries || []).forEach(entry => {
+        const key = `${entry.date || ''}\u0000${entry.category || 'General'}`;
+        if(!byKey.has(key)){
+          const group = {date: entry.date || '', category: entry.category || 'General', items: []};
+          byKey.set(key, group); groups.push(group);
+        }
+        byKey.get(key).items.push(entry);
+      });
+      return groups;
+    }
     function renderPatchNotes(entries){
       const list = $('patchNotesList');
       if(!list) return;
-      if(!entries?.length){ list.innerHTML = '<div class="cmd-body">暫時未有更新日誌。</div>'; return; }
-      list.innerHTML = entries.map((entry, index) => {
-        const summary = `${escapeHtml(entry.date)}｜${escapeHtml(entry.category)}｜${escapeHtml(entry.title)}`;
-        return `<details class="cmd-details" ${index === 0 ? 'open' : ''}><summary>${summary}</summary><div class="cmd-body">${escapeHtml(entry.body)}</div></details>`;
+      const groups = groupPatchNotes(entries);
+      if(!groups.length){ list.innerHTML = '<div class="cmd-body">暫時未有更新日誌。</div>'; return; }
+      list.innerHTML = groups.map((group, index) => {
+        const count = group.items.length;
+        const title = count === 1 ? group.items[0].title : `${count} 個更新`;
+        const summary = `${escapeHtml(group.date)}｜${escapeHtml(group.category)}｜${escapeHtml(title)}`;
+        const body = count === 1
+          ? escapeHtml(group.items[0].body)
+          : `<ul>${group.items.map(item => `<li><strong>${escapeHtml(item.title)}</strong>：${escapeHtml(item.body)}</li>`).join('')}</ul>`;
+        return `<details class="cmd-details" ${index === 0 ? 'open' : ''}><summary>${summary}</summary><div class="cmd-body">${body}</div></details>`;
       }).join('');
     }
     async function loadPatchNotes(){
