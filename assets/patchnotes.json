@@ -1,8 +1,14 @@
 {
   "source": "Jimpae public patch notes",
-  "updatedAt": "2026-05-12T10:19:29.006539+00:00",
-  "sourceHash": "01bf4565ca2a20366f36a6f497887994c22992c00e77cb9ad2eb99ea95a15460",
+  "updatedAt": "2026-05-12T10:59:23.699212+00:00",
+  "sourceHash": "ed4d999381a6cd8d5f664f2ee66a331914eba3ca5c34d8b66086eb92e1f2e51e",
   "entries": [
+    {
+      "date": "2026-05-12",
+      "category": "Minecraft",
+      "title": "Minecraft 輪盤 !mcroll",
+      "body": "新增 15 占幣輪盤兌換；每人 60 秒冷卻、全局 20 秒冷卻。如果抽中擊殺類並成功擊殺 Jimpae，兌換者會有 +10 占幣安慰獎。"
+    },
     {
       "date": "2026-05-12",
       "category": "Minecraft",
