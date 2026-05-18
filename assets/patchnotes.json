@@ -1,8 +1,14 @@
 {
   "source": "Jimpae public patch notes",
-  "updatedAt": "2026-05-12T10:59:23.699212+00:00",
-  "sourceHash": "ed4d999381a6cd8d5f664f2ee66a331914eba3ca5c34d8b66086eb92e1f2e51e",
+  "updatedAt": "2026-05-18T14:51:26.907381+00:00",
+  "sourceHash": "2aac3e0f8207aa3d144c40a01c34edc420e014f926fe9eaab77958abf320f2e3",
   "entries": [
+    {
+      "date": "2026-05-19",
+      "category": "LiveChat / 角色",
+      "title": "TTS 角色行走動畫修復",
+      "body": "TTS 彈窗入面嘅 Stream Avatars gear 行走動畫已修好，褲、鞋同裙類裝備會跟角色動作同步，膚色顯示亦更一致。"
+    },
     {
       "date": "2026-05-12",
       "category": "Minecraft",
