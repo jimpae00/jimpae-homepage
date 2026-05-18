@@ -1,8 +1,32 @@
 {
   "source": "Jimpae public patch notes",
-  "updatedAt": "2026-05-18T14:51:26.907381+00:00",
-  "sourceHash": "2aac3e0f8207aa3d144c40a01c34edc420e014f926fe9eaab77958abf320f2e3",
+  "updatedAt": "2026-05-18T19:14:28.274899+00:00",
+  "sourceHash": "92acdbb9c89061446b86f10858cb63b52d4cf94d4f0b39c2395ac4d37e29a71a",
   "entries": [
+    {
+      "date": "2026-05-19",
+      "category": "Minecraft",
+      "title": "Minecraft 兌換排隊上限調整",
+      "body": "Minecraft 兌換如果太多人同時使用，最多只會等約 10 秒；排唔到就會自動取消，唔會扣占幣，亦唔會進入冷卻。"
+    },
+    {
+      "date": "2026-05-19",
+      "category": "Minecraft",
+      "title": "兌換失敗提示更清楚",
+      "body": "如果伺服器指令流量太高，系統會直接提示「伺服器繁忙」或「召喚太多人」，唔再誤報成附近無安全空位。"
+    },
+    {
+      "date": "2026-05-19",
+      "category": "Minecraft",
+      "title": "召喚壓力保護改善",
+      "body": "高流量時系統會更快保護 Minecraft server，避免兌換暗中排幾分鐘後先突然觸發。"
+    },
+    {
+      "date": "2026-05-19",
+      "category": "Minecraft",
+      "title": "召喚位置模式改善",
+      "body": "部分召喚兌換在指定模式下會更直接跟住玩家位置生成，減少因附近空位檢查而失敗嘅情況。"
+    },
     {
       "date": "2026-05-19",
       "category": "LiveChat / 角色",
