@@ -1,8 +1,14 @@
 {
   "source": "Jimpae public patch notes",
-  "updatedAt": "2026-05-18T19:14:28.274899+00:00",
-  "sourceHash": "92acdbb9c89061446b86f10858cb63b52d4cf94d4f0b39c2395ac4d37e29a71a",
+  "updatedAt": "2026-05-25T13:54:05.609224+00:00",
+  "sourceHash": "5a34d981c7b74b3231572c2411b25a04b990179bfa957c898608f389ea47fb6b",
   "entries": [
+    {
+      "date": "2026-05-25",
+      "category": "Minecraft",
+      "title": "!tnt 爆炸時間加長",
+      "body": "TNT 兌換由約 1.5 秒後爆炸改為約 2.5 秒後爆炸，俾 Jimpae 多一秒反應時間。"
+    },
     {
       "date": "2026-05-19",
       "category": "Minecraft",
