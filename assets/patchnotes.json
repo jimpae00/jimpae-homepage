@@ -1,8 +1,14 @@
 {
   "source": "Jimpae public patch notes",
-  "updatedAt": "2026-05-25T13:54:05.609224+00:00",
-  "sourceHash": "5a34d981c7b74b3231572c2411b25a04b990179bfa957c898608f389ea47fb6b",
+  "updatedAt": "2026-05-25T18:34:43.741157+00:00",
+  "sourceHash": "eaeedc9401e1d9499936c7360644f98c716fffe653b1bdd46780417b3686b4d1",
   "entries": [
+    {
+      "date": "2026-05-26",
+      "category": "Minecraft",
+      "title": "召喚兌換提示音修復",
+      "body": "Minecraft 召喚類兌換嘅遊戲內提示音已修復；!tnt 會有更清楚嘅點燃 / 爆炸前提示聲，其他召喚亦會恢復傳送或生物聲效。"
+    },
     {
       "date": "2026-05-25",
       "category": "Minecraft",
