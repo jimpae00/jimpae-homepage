@@ -1,8 +1,14 @@
 {
   "source": "Jimpae public patch notes",
-  "updatedAt": "2026-05-25T18:34:43.741157+00:00",
-  "sourceHash": "eaeedc9401e1d9499936c7360644f98c716fffe653b1bdd46780417b3686b4d1",
+  "updatedAt": "2026-06-07T09:21:37.445181+00:00",
+  "sourceHash": "51d1f1df5e78b1f413d389770eee1472c0b0eff542e8760920cf4edc4167835e",
   "entries": [
+    {
+      "date": "2026-06-07",
+      "category": "占幣",
+      "title": "直播領占幣調整",
+      "body": "開台可以領 25 占幣，直播完結亦可以再領 25 占幣。"
+    },
     {
       "date": "2026-05-26",
       "category": "Minecraft",
