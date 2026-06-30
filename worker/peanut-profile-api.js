@@ -29,6 +29,14 @@ export default {
         return await adminAckDiscordLinks(request, env);
       }
 
+      if (url.pathname === '/admin/pending-youtube-links' && request.method === 'GET') {
+        return await adminPendingYoutubeLinks(request, env);
+      }
+
+      if (url.pathname === '/admin/pending-youtube-links/ack' && request.method === 'POST') {
+        return await adminAckYoutubeLinks(request, env);
+      }
+
       if (url.pathname === '/profile/twitch/login' && request.method === 'GET') {
         return twitchLogin(url, env);
       }
@@ -43,6 +51,14 @@ export default {
 
       if (url.pathname === '/profile/discord/callback' && request.method === 'GET') {
         return await discordCallback(request, url, env);
+      }
+
+      if (url.pathname === '/profile/youtube/login' && request.method === 'GET') {
+        return await youtubeLogin(request, url, env);
+      }
+
+      if (url.pathname === '/profile/youtube/callback' && request.method === 'GET') {
+        return await youtubeCallback(request, url, env);
       }
 
       if (url.pathname === '/profile/me' && request.method === 'GET') {
@@ -291,6 +307,49 @@ async function discordCallback(request, url, env) {
   const headers = new Headers();
   headers.set('location', oauthState.return_to || 'https://jimpae.info/profile?discord=pending');
   headers.append('set-cookie', 'peanut_discord_oauth=; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=0');
+  return new Response(null, { status: 302, headers });
+}
+
+
+async function youtubeLogin(request, url, env) {
+  requireEnv(env, ['GOOGLE_CLIENT_ID', 'GOOGLE_REDIRECT_URI', 'COOKIE_SECRET']);
+  const session = await getSession(request, env);
+  const state = randomHex(16);
+  const returnTo = url.searchParams.get('return_to') || 'https://jimpae.info/profile';
+  const cookieValue = btoa(JSON.stringify({ state, return_to: returnTo, twitch_user_id: session?.twitch_user_id || '' })).replace(/=+$/, '');
+  const auth = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+  auth.searchParams.set('client_id', env.GOOGLE_CLIENT_ID);
+  auth.searchParams.set('redirect_uri', env.GOOGLE_REDIRECT_URI);
+  auth.searchParams.set('response_type', 'code');
+  auth.searchParams.set('scope', 'https://www.googleapis.com/auth/youtube.readonly');
+  auth.searchParams.set('access_type', 'online');
+  auth.searchParams.set('prompt', 'select_account');
+  auth.searchParams.set('state', state);
+  return new Response(null, { status: 302, headers: { location: auth.toString(), 'set-cookie': `peanut_youtube_oauth=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=600` } });
+}
+
+async function youtubeCallback(request, url, env) {
+  requireEnv(env, ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REDIRECT_URI']);
+  const code = url.searchParams.get('code');
+  const state = url.searchParams.get('state');
+  if (!code || !state) return json({ ok: false, error: 'missing code/state' }, 400);
+  const oauth = readCookie(request, 'peanut_youtube_oauth');
+  const oauthState = oauth ? JSON.parse(atob(padBase64(oauth))) : null;
+  if (!oauthState || oauthState.state !== state) return json({ ok: false, error: 'invalid state' }, 400);
+  const tokenRes = await fetch('https://oauth2.googleapis.com/token', { method:'POST', headers:{'content-type':'application/x-www-form-urlencoded'}, body:new URLSearchParams({client_id:env.GOOGLE_CLIENT_ID, client_secret:env.GOOGLE_CLIENT_SECRET, code, grant_type:'authorization_code', redirect_uri:env.GOOGLE_REDIRECT_URI}) });
+  if (!tokenRes.ok) return json({ ok:false, error:`youtube token failed ${tokenRes.status}`, detail:(await tokenRes.text()).slice(0,300)}, 502);
+  const token = await tokenRes.json();
+  const chRes = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', { headers:{authorization:`Bearer ${token.access_token}`} });
+  if (!chRes.ok) return json({ ok:false, error:`youtube channel failed ${chRes.status}`, detail:(await chRes.text()).slice(0,300)}, 502);
+  const chJson = await chRes.json();
+  const ch = chJson.items && chJson.items[0];
+  if (!ch) return json({ ok:false, error:'youtube channel not found' }, 502);
+  const snippet = ch.snippet || {};
+  await env.DB.prepare(`INSERT INTO pending_youtube_links (youtube_channel_id, youtube_handle, youtube_display_name, twitch_user_id, status, created_at) VALUES (?, ?, ?, ?, 'pending', ?)`)
+    .bind(String(ch.id), snippet.customUrl || null, snippet.title || null, oauthState.twitch_user_id || null, new Date().toISOString()).run();
+  const headers = new Headers();
+  headers.set('location', oauthState.return_to || 'https://jimpae.info/profile');
+  headers.append('set-cookie', 'peanut_youtube_oauth=; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=0');
   return new Response(null, { status: 302, headers });
 }
 
