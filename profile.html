@@ -25,6 +25,7 @@
       <p class="subtitle">用 Twitch 登入，查看你擁有嘅花生證 season，同 Discord 連結狀態。資料由直播系統同步，可能有少少延遲。</p>
       <div class="actions" id="actions">
         <a class="btn btn-primary" id="loginBtn" href="#">Login with Twitch</a>
+        <a class="btn btn-primary hidden" id="discordBtn" href="#">Connect Discord</a>
         <button class="btn btn-ghost hidden" id="logoutBtn">Logout</button>
       </div>
     </section>
@@ -53,6 +54,7 @@
     const returnTo = `${location.origin}${location.pathname}`;
 
     $('loginBtn').href = `${API}/profile/twitch/login?return_to=${encodeURIComponent(returnTo)}`;
+    $('discordBtn').href = `${API}/profile/discord/login?return_to=${encodeURIComponent(returnTo)}`;
     $('logoutBtn').addEventListener('click', async () => {
       await fetch(`${API}/profile/logout`, {method:'POST', credentials:'include'}).catch(()=>{});
       location.reload();
@@ -60,18 +62,20 @@
 
     function renderLoggedOut(message='尚未登入 Twitch。'){
       $('loginBtn').classList.remove('hidden');
+      $('discordBtn').classList.add('hidden');
       $('logoutBtn').classList.add('hidden');
       $('accountBox').innerHTML = `<p class="muted">${escapeHtml(message)}</p>`;
       $('seasonBox').innerHTML = '<p class="muted">登入後會顯示你擁有嘅花生證。</p>';
     }
 
     function renderProfile(data){
-      $('loginBtn').classList.add('hidden');
-      $('logoutBtn').classList.remove('hidden');
       const profile = data.profile || {};
+      $('loginBtn').classList.add('hidden');
+      $('discordBtn').classList.toggle('hidden', !!profile.discord_linked || !!data.discord_pending);
+      $('logoutBtn').classList.remove('hidden');
       const display = profile.twitch_display_name || data.twitch_login || profile.twitch_login || 'Twitch Viewer';
       const login = profile.twitch_login || data.twitch_login || '';
-      const discord = profile.discord_linked ? '<span class="ok">已連結</span>' : '<span class="warn">未連結</span>';
+      const discord = profile.discord_linked ? '<span class="ok">已連結</span>' : (data.discord_pending ? '<span class="warn">連結處理中</span>' : '<span class="warn">未連結</span>');
       const synced = profile.last_synced_at ? new Date(profile.last_synced_at).toLocaleString('zh-HK', {hour12:false}) : '未有同步時間';
       $('accountBox').innerHTML = `
         <div class="stat"><strong>Twitch</strong><span>${escapeHtml(display)}</span></div>

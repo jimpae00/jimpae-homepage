@@ -17,3 +17,17 @@ CREATE TABLE IF NOT EXISTS peanut_ownerships (
 
 CREATE INDEX IF NOT EXISTS idx_peanut_ownerships_twitch_user_id
 ON peanut_ownerships(twitch_user_id);
+
+CREATE TABLE IF NOT EXISTS pending_discord_links (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  twitch_user_id TEXT NOT NULL,
+  twitch_login TEXT,
+  discord_user_id TEXT NOT NULL,
+  discord_username TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TEXT NOT NULL,
+  applied_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_pending_discord_links_status
+ON pending_discord_links(status, id);
