@@ -137,7 +137,15 @@ async function twitchCallback(request, url, env) {
       redirect_uri: env.TWITCH_REDIRECT_URI,
     }),
   });
-  if (!tokenRes.ok) return json({ ok: false, error: `twitch token failed ${tokenRes.status}` }, 502);
+  if (!tokenRes.ok) {
+    const text = await tokenRes.text();
+    let detail = text.slice(0, 300);
+    try {
+      const parsed = JSON.parse(text);
+      detail = parsed.message || parsed.error || detail;
+    } catch (_) {}
+    return json({ ok: false, error: `twitch token failed ${tokenRes.status}`, detail }, 502);
+  }
   const token = await tokenRes.json();
 
   const userRes = await fetch('https://api.twitch.tv/helix/users', {

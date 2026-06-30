@@ -3,6 +3,9 @@ main = "worker/peanut-profile-api.js"
 compatibility_date = "2026-06-28"
 account_id = "293544a66dd3f3fdcc5538df16295520"
 workers_dev = true
+routes = [
+  { pattern = "peanut-api.jimpae.info", custom_domain = true }
+]
 
 # Fill database_id after creating D1:
 # npx wrangler d1 create jimpae-peanut-profile
