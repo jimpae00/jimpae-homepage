@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS viewer_profiles (
   discord_user_id TEXT UNIQUE,
   discord_username TEXT,
   discord_linked INTEGER NOT NULL DEFAULT 0,
+  points INTEGER,
+  points_rank INTEGER,
+  points_platform TEXT,
   last_synced_at TEXT
 );
 
