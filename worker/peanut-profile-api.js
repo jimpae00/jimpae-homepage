@@ -220,13 +220,13 @@ function readOauthState(request, url, cookieName) {
   const state = url.searchParams.get('state');
   if (!code || !state) throw new Error('missing code/state');
   const raw = readCookie(request, cookieName);
-  const parsed = raw ? JSON.parse(atob(padBase64(raw))) : null;
+  const parsed = raw ? JSON.parse(base64UrlDecode(raw)) : null;
   if (!parsed || parsed.state !== state) throw new Error('invalid state');
   return parsed;
 }
 
 function redirectWithCookie(location, name, value) {
-  const cookieValue = btoa(JSON.stringify(value)).replace(/=+$/, '');
+  const cookieValue = base64UrlEncode(JSON.stringify(value));
   return new Response(null, { status: 302, headers: { location, 'set-cookie': `${name}=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=600` } });
 }
 
@@ -253,8 +253,22 @@ function cors(resp, request) {
 }
 function randomHex(bytes) { const a = new Uint8Array(bytes); crypto.getRandomValues(a); return [...a].map(b => b.toString(16).padStart(2, '0')).join(''); }
 function readCookie(request, name) { const cookies = request.headers.get('cookie') || ''; for (const part of cookies.split(';')) { const [k, ...rest] = part.trim().split('='); if (k === name) return rest.join('='); } return ''; }
+
+function base64UrlEncode(text) {
+  const bytes = new TextEncoder().encode(text);
+  let binary = '';
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+}
+function base64UrlDecode(text) {
+  const normalized = text.replace(/-/g, '+').replace(/_/g, '/');
+  const binary = atob(padBase64(normalized));
+  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
 function padBase64(s) { return s + '='.repeat((4 - (s.length % 4)) % 4); }
-async function signSession(payload, secret) { const body = btoa(JSON.stringify(payload)).replace(/=+$/, ''); const sig = await hmac(body, secret); return `${body}.${sig}`; }
-async function verifySession(token, secret) { const [body, sig] = String(token || '').split('.'); if (!body || !sig) return null; const expected = await hmac(body, secret); if (sig !== expected) return null; const payload = JSON.parse(atob(padBase64(body))); if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) return null; return payload; }
+async function signSession(payload, secret) { const body = base64UrlEncode(JSON.stringify(payload)); const sig = await hmac(body, secret); return `${body}.${sig}`; }
+async function verifySession(token, secret) { const [body, sig] = String(token || '').split('.'); if (!body || !sig) return null; const expected = await hmac(body, secret); if (sig !== expected) return null; const payload = JSON.parse(base64UrlDecode(body)); if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) return null; return payload; }
 async function hmac(body, secret) { const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']); const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(body)); return btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_'); }
 function sessionCookie(value, maxAge) { return `peanut_session=${value}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=${maxAge}`; }
