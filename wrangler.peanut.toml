@@ -1,0 +1,19 @@
+name = "jimpae-peanut-profile-api"
+main = "worker/peanut-profile-api.js"
+compatibility_date = "2026-06-28"
+account_id = "293544a66dd3f3fdcc5538df16295520"
+workers_dev = true
+
+# Fill database_id after creating D1:
+# npx wrangler d1 create jimpae-peanut-profile
+[[d1_databases]]
+binding = "DB"
+database_name = "jimpae-peanut-profile"
+database_id = "32e0ebfe-299f-47d6-8807-830a8d1b67bc"
+
+# Required secrets before deploy:
+# npx wrangler secret put PEANUT_SYNC_SECRET --config wrangler.peanut.toml
+# npx wrangler secret put TWITCH_CLIENT_ID --config wrangler.peanut.toml
+# npx wrangler secret put TWITCH_CLIENT_SECRET --config wrangler.peanut.toml
+# npx wrangler secret put TWITCH_REDIRECT_URI --config wrangler.peanut.toml
+# npx wrangler secret put COOKIE_SECRET --config wrangler.peanut.toml
