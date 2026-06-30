@@ -19,6 +19,8 @@ export default {
       if (url.pathname === '/admin/pending-discord-links/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_discord_links');
       if (url.pathname === '/admin/pending-youtube-links' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_youtube_links');
       if (url.pathname === '/admin/pending-youtube-links/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_youtube_links');
+      if (url.pathname === '/admin/pending-unlinks' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_unlinks');
+      if (url.pathname === '/admin/pending-unlinks/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_unlinks');
 
       if (url.pathname === '/profile/twitch/login' && request.method === 'GET') return twitchLogin(url, env);
       if (url.pathname === '/profile/twitch/callback' && request.method === 'GET') return await twitchCallback(request, url, env);
@@ -27,6 +29,7 @@ export default {
       if (url.pathname === '/profile/youtube/login' && request.method === 'GET') return await youtubeLogin(request, url, env);
       if (url.pathname === '/profile/youtube/callback' && request.method === 'GET') return await youtubeCallback(request, url, env);
       if (url.pathname === '/profile/me' && request.method === 'GET') return await profileMe(request, env);
+      if (url.pathname === '/profile/unlink' && request.method === 'POST') return await profileUnlink(request, env);
       if (url.pathname === '/profile/logout' && request.method === 'POST') return cors(new Response(JSON.stringify({ ok: true }), { headers: { ...JSON_HEADERS, 'set-cookie': sessionCookie('', 0) } }), request);
       return json({ ok: false, error: 'not found' }, 404);
     } catch (err) {
@@ -180,6 +183,25 @@ async function youtubeCallback(request, url, env) {
     .bind(String(ch.id), snippet.customUrl || null, snippet.title || null, oauthState.twitch_user_id || null, oauthState.discord_user_id || null, new Date().toISOString()).run();
   const session = await signSession({ provider: 'youtube', youtube_channel_id: String(ch.id), youtube_handle: snippet.customUrl || '', youtube_display_name: snippet.title || '', exp: sessionExp() }, env.COOKIE_SECRET);
   return callbackRedirect(oauthState.return_to, 'peanut_youtube_oauth', session);
+}
+
+
+async function profileUnlink(request, env) {
+  const session = await getSession(request, env);
+  if (!session) return json({ ok: false, error: 'not logged in' }, 401);
+  const body = await request.json().catch(() => ({}));
+  const platform = String(body.platform || '').toLowerCase();
+  if (!['twitch', 'youtube', 'discord'].includes(platform)) return json({ ok: false, error: 'invalid platform' }, 400);
+  const { where, value } = identityWhere(session);
+  let profile = null;
+  if (where) profile = await env.DB.prepare(`SELECT * FROM viewer_profiles_v2 WHERE ${where}=?`).bind(value).first();
+  const viewerId = profile?.viewer_id || null;
+  await env.DB.prepare(`
+    INSERT INTO pending_unlinks
+    (viewer_id, session_provider, session_subject, platform, status, created_at)
+    VALUES (?, ?, ?, ?, 'pending', ?)
+  `).bind(viewerId, session.provider || null, value || null, platform, new Date().toISOString()).run();
+  return json({ ok: true, status: 'pending', platform });
 }
 
 async function profileMe(request, env) {

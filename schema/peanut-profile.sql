@@ -61,3 +61,16 @@ CREATE TABLE IF NOT EXISTS pending_youtube_links (
 
 CREATE INDEX IF NOT EXISTS idx_pending_youtube_links_status
 ON pending_youtube_links(status, id);
+
+CREATE TABLE IF NOT EXISTS pending_unlinks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  viewer_id INTEGER,
+  session_provider TEXT,
+  session_subject TEXT,
+  platform TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TEXT NOT NULL,
+  applied_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_pending_unlinks_status
+ON pending_unlinks(status, id);

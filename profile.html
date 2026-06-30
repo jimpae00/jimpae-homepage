@@ -9,7 +9,7 @@
   <style>
     :root{--background:#071017;--foreground:#f2fbff;--muted:#91a9b7;--border:rgba(255,255,255,.10);--primary:#6ed6ff;--primary-2:#a7f3ff;--on-primary:#031018;--good:#86efac;--warn:#ffd166;--shadow:0 24px 80px rgba(0,0,0,.45)}
     *{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:'DM Sans','Noto Sans TC',system-ui,-apple-system,sans-serif;color:var(--foreground);background:radial-gradient(circle at 15% 5%,rgba(110,214,255,.22),transparent 28rem),radial-gradient(circle at 85% 10%,rgba(167,243,255,.13),transparent 26rem),linear-gradient(180deg,#06131d 0%,var(--background) 44%,#05090d 100%)}
-    .shell{width:min(960px,100%);margin:0 auto;padding:28px 18px 56px}.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}.brand{display:flex;align-items:center;gap:12px;font-weight:900}.logo{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:var(--on-primary);box-shadow:0 0 34px rgba(110,214,255,.28)}.logo svg{width:22px;height:22px}.nav a{color:var(--muted);text-decoration:none}.panel{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025));border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow);backdrop-filter:blur(18px)}.hero{padding:34px;margin-bottom:20px}.eyebrow{display:inline-flex;color:var(--primary);font-weight:900;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px}h1{font-size:clamp(38px,7vw,68px);line-height:.95;margin:0 0 16px;letter-spacing:-.055em}.subtitle{color:#cbe1eb;font-size:18px;line-height:1.65;margin:0;max-width:70ch}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:999px;padding:12px 18px;font-weight:900;text-decoration:none;cursor:pointer}.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:var(--on-primary)}.btn-ghost{background:rgba(255,255,255,.06);color:var(--foreground);border:1px solid var(--border)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.card{padding:22px}.card h2,.card h3{margin:0 0 12px}.muted{color:var(--muted)}.stat{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--border)}.stat:last-child{border-bottom:0}.pill-row{display:flex;flex-wrap:wrap;gap:10px}.season{display:inline-flex;align-items:center;border-radius:999px;padding:9px 13px;background:rgba(110,214,255,.12);border:1px solid rgba(110,214,255,.28);font-weight:900}.ok{color:var(--good)}.warn{color:var(--warn)}.error{color:#ff9ca3}.hidden{display:none}.loading{padding:22px;color:var(--muted)}code{background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:8px;padding:2px 6px}@media(max-width:760px){.grid{grid-template-columns:1fr}.hero{padding:24px}.nav{align-items:flex-start}.actions{flex-direction:column}.btn{width:100%}}
+    .shell{width:min(960px,100%);margin:0 auto;padding:28px 18px 56px}.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}.brand{display:flex;align-items:center;gap:12px;font-weight:900}.logo{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:var(--on-primary);box-shadow:0 0 34px rgba(110,214,255,.28)}.logo svg{width:22px;height:22px}.nav a{color:var(--muted);text-decoration:none}.panel{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025));border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow);backdrop-filter:blur(18px)}.hero{padding:34px;margin-bottom:20px}.eyebrow{display:inline-flex;color:var(--primary);font-weight:900;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px}h1{font-size:clamp(38px,7vw,68px);line-height:.95;margin:0 0 16px;letter-spacing:-.055em}.subtitle{color:#cbe1eb;font-size:18px;line-height:1.65;margin:0;max-width:70ch}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:999px;padding:12px 18px;font-weight:900;text-decoration:none;cursor:pointer}.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:var(--on-primary)}.btn-ghost{background:rgba(255,255,255,.06);color:var(--foreground);border:1px solid var(--border)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.card{padding:22px}.card h2,.card h3{margin:0 0 12px}.muted{color:var(--muted)}.stat{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--border)}.stat-value{display:flex;align-items:center;gap:10px;text-align:right}.unlink{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:#ffb4b4;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900;cursor:pointer}.stat:last-child{border-bottom:0}.pill-row{display:flex;flex-wrap:wrap;gap:10px}.season{display:inline-flex;align-items:center;border-radius:999px;padding:9px 13px;background:rgba(110,214,255,.12);border:1px solid rgba(110,214,255,.28);font-weight:900}.ok{color:var(--good)}.warn{color:var(--warn)}.error{color:#ff9ca3}.hidden{display:none}.loading{padding:22px;color:var(--muted)}code{background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:8px;padding:2px 6px}@media(max-width:760px){.grid{grid-template-columns:1fr}.hero{padding:24px}.nav{align-items:flex-start}.actions{flex-direction:column}.btn{width:100%}}
   </style>
 </head>
 <body>
@@ -61,6 +61,18 @@
       await fetch(`${API}/profile/logout`, {method:'POST', credentials:'include'}).catch(()=>{});
       location.reload();
     });
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-unlink]');
+      if(!btn) return;
+      const platform = btn.dataset.unlink;
+      if(!confirm(`Unlink ${platform}? 花生證不會刪除，只會解除這個登入身份。`)) return;
+      btn.disabled = true;
+      btn.textContent = 'Pending';
+      const res = await fetch(`${API}/profile/unlink`, {method:'POST', credentials:'include', headers:{'content-type':'application/json'}, body:JSON.stringify({platform})});
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok || !data.ok){ alert(data.error || `Unlink failed: HTTP ${res.status}`); btn.disabled=false; btn.textContent='Unlink'; return; }
+      alert('Unlink queued. 15–30 秒後 refresh 會更新。');
+    });
 
     function renderLoggedOut(message='尚未登入 Twitch / YouTube。'){
       $('loginBtn').classList.remove('hidden');
@@ -80,10 +92,11 @@
       const youtubeHandle = profile.youtube_handle || data.session?.youtube_handle || '';
       const discord = profile.discord_linked ? '<span class="ok">已連結</span>' : (data.discord_pending ? '<span class="warn">連結處理中</span>' : '<span class="warn">未連結</span>');
       const synced = profile.last_synced_at ? new Date(profile.last_synced_at).toLocaleString('zh-HK', {hour12:false}) : '未有同步時間';
+      const unlinkBtn = (platform, enabled) => enabled ? `<button class="unlink" data-unlink="${platform}">Unlink</button>` : '';
       $('accountBox').innerHTML = `
-        <div class="stat"><strong>Twitch</strong><span>${escapeHtml(twitch ? '@'+twitch : '—')}</span></div>
-        <div class="stat"><strong>YouTube</strong><span>${escapeHtml(youtube || youtubeHandle || '—')}</span></div>
-        <div class="stat"><strong>Discord</strong><span>${discord}</span></div>
+        <div class="stat"><strong>Twitch</strong><span class="stat-value"><span>${escapeHtml(twitch ? '@'+twitch : '—')}</span>${unlinkBtn('twitch', !!profile.twitch_user_id)}</span></div>
+        <div class="stat"><strong>YouTube</strong><span class="stat-value"><span>${escapeHtml(youtube || youtubeHandle || '—')}</span>${unlinkBtn('youtube', !!profile.youtube_channel_id)}</span></div>
+        <div class="stat"><strong>Discord</strong><span class="stat-value"><span>${discord}</span>${unlinkBtn('discord', !!profile.discord_user_id)}</span></div>
         <div class="stat"><strong>最後同步</strong><span>${escapeHtml(synced)}</span></div>
       `;
       const seasons = data.seasons || [];
