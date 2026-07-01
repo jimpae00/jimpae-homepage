@@ -77,6 +77,7 @@
 
     function renderLoggedOut(message='尚未登入 Twitch / YouTube。'){
       $('loginBtn').classList.remove('hidden');
+      $('youtubeBtn').classList.remove('hidden');
       $('discordBtn').classList.add('hidden');
       $('logoutBtn').classList.add('hidden');
       $('accountBox').innerHTML = `<p class="muted">${escapeHtml(message)}</p>`;
@@ -85,7 +86,8 @@
 
     function renderProfile(data){
       const profile = data.profile || {};
-      $('loginBtn').classList.add('hidden');
+      $('loginBtn').classList.toggle('hidden', !!profile.twitch_user_id);
+      $('youtubeBtn').classList.toggle('hidden', !!profile.youtube_channel_id);
       $('discordBtn').classList.toggle('hidden', !!profile.discord_linked || !!data.discord_pending);
       $('logoutBtn').classList.remove('hidden');
       const twitch = profile.twitch_login || data.session?.twitch_login || '';
