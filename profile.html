@@ -112,9 +112,9 @@
 
     function renderProfile(data){
       const profile = data.profile || {};
-      $('loginBtn').textContent = 'Connect Twitch';
+      $('loginBtn').textContent = profile.twitch_user_id ? 'Replace Twitch' : 'Connect Twitch';
       $('youtubeBtn').textContent = 'Connect YouTube';
-      $('loginBtn').classList.toggle('hidden', !!profile.twitch_user_id);
+      $('loginBtn').classList.remove('hidden');
       $('youtubeBtn').classList.toggle('hidden', !!profile.youtube_channel_id);
       $('discordBtn').classList.toggle('hidden', !!profile.discord_linked || !!data.discord_pending);
       const ownsS57 = (data.seasons || []).some(s => Number(s.season_number) === 57);

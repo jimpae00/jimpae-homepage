@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS pending_twitch_links (
   twitch_display_name TEXT,
   youtube_channel_id TEXT,
   discord_user_id TEXT,
+  current_viewer_id INTEGER,
   status TEXT NOT NULL DEFAULT 'pending',
   created_at TEXT NOT NULL,
   applied_at TEXT
@@ -123,3 +124,5 @@ CREATE TABLE IF NOT EXISTS pending_peanut_redeems (
 
 CREATE INDEX IF NOT EXISTS idx_pending_peanut_redeems_status
 ON pending_peanut_redeems(status, id);
+
+ALTER TABLE pending_twitch_links ADD COLUMN current_viewer_id INTEGER;

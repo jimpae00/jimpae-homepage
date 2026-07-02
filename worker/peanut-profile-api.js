@@ -114,6 +114,11 @@ async function adminAckLinks(request, env, table) {
 async function twitchLogin(request, url, env) {
   requireEnv(env, ['TWITCH_CLIENT_ID', 'TWITCH_REDIRECT_URI']);
   const session = await getSession(request, env);
+  let currentProfile = null;
+  if (session) {
+    const ident = identityWhere(session);
+    if (ident.where) currentProfile = await env.DB.prepare(`SELECT * FROM viewer_profiles_v2 WHERE ${ident.where}=?`).bind(ident.value).first();
+  }
   const state = randomHex(16);
   const auth = new URL('https://id.twitch.tv/oauth2/authorize');
   auth.searchParams.set('client_id', env.TWITCH_CLIENT_ID);
@@ -125,8 +130,9 @@ async function twitchLogin(request, url, env) {
   return redirectWithCookie(auth.toString(), 'peanut_oauth', {
     state,
     return_to: returnTo,
-    youtube_channel_id: session?.youtube_channel_id || '',
-    discord_user_id: session?.discord_user_id || '',
+    youtube_channel_id: session?.youtube_channel_id || currentProfile?.youtube_channel_id || '',
+    discord_user_id: session?.discord_user_id || currentProfile?.discord_user_id || '',
+    current_viewer_id: currentProfile?.viewer_id || '',
   });
 }
 
@@ -140,9 +146,9 @@ async function twitchCallback(request, url, env) {
   if (!user) return json({ ok: false, error: 'twitch user not found' }, 502);
   await env.DB.prepare(`
     INSERT INTO pending_twitch_links
-    (twitch_user_id, twitch_login, twitch_display_name, youtube_channel_id, discord_user_id, status, created_at)
-    VALUES (?, ?, ?, ?, ?, 'pending', ?)
-  `).bind(String(user.id), user.login || null, user.display_name || user.login || null, oauthState.youtube_channel_id || null, oauthState.discord_user_id || null, new Date().toISOString()).run();
+    (twitch_user_id, twitch_login, twitch_display_name, youtube_channel_id, discord_user_id, current_viewer_id, status, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)
+  `).bind(String(user.id), user.login || null, user.display_name || user.login || null, oauthState.youtube_channel_id || null, oauthState.discord_user_id || null, oauthState.current_viewer_id || null, new Date().toISOString()).run();
   const session = await signSession({ provider: 'twitch', twitch_user_id: String(user.id), twitch_login: user.login, exp: sessionExp() }, env.COOKIE_SECRET);
   return callbackRedirect(oauthState.return_to, 'peanut_oauth', session);
 }
