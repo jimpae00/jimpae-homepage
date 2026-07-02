@@ -27,6 +27,7 @@
         <a class="btn btn-primary" id="loginBtn" href="#">Login with Twitch</a>
         <a class="btn btn-primary hidden" id="discordBtn" href="#">Connect Discord</a>
         <a class="btn btn-primary" id="youtubeBtn" href="#">Login with YouTube</a>
+        <button class="btn btn-ghost hidden" id="testDeductBtn">Test -100 PTS</button>
         <button class="btn btn-ghost hidden" id="logoutBtn">Logout</button>
       </div>
     </section>
@@ -58,6 +59,16 @@
     $('loginBtn').href = `${API}/profile/twitch/login?return_to=${encodeURIComponent(returnTo)}`;
     $('discordBtn').href = `${API}/profile/discord/login?return_to=${encodeURIComponent(returnTo)}`;
     $('youtubeBtn').href = `${API}/profile/youtube/login?return_to=${encodeURIComponent(returnTo)}`;
+    $('testDeductBtn').addEventListener('click', async () => {
+      if(!confirm('Jimpae test only：扣你 profile 100 占幣，並寫入 internal log。繼續？')) return;
+      $('testDeductBtn').disabled = true;
+      $('testDeductBtn').textContent = 'Queued...';
+      const res = await fetch(`${API}/profile/test-deduct`, {method:'POST', credentials:'include'});
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok || !data.ok){ alert(data.error || `Test deduct failed: HTTP ${res.status}`); $('testDeductBtn').disabled=false; $('testDeductBtn').textContent='Test -100 PTS'; return; }
+      alert(`Test deduction queued: ${data.amount} 占幣。15–30 秒後 refresh / 查 log。`);
+    });
+
     $('logoutBtn').addEventListener('click', async () => {
       await fetch(`${API}/profile/logout`, {method:'POST', credentials:'include'}).catch(()=>{});
       location.reload();
@@ -81,6 +92,7 @@
       $('loginBtn').classList.remove('hidden');
       $('youtubeBtn').classList.remove('hidden');
       $('discordBtn').classList.add('hidden');
+      $('testDeductBtn').classList.add('hidden');
       $('logoutBtn').classList.add('hidden');
       $('accountBox').innerHTML = `<p class="muted">${escapeHtml(message)}</p>`;
       $('seasonBox').innerHTML = '<p class="muted">登入後會顯示你擁有嘅花生證。</p>';
@@ -93,6 +105,9 @@
       $('loginBtn').classList.toggle('hidden', !!profile.twitch_user_id);
       $('youtubeBtn').classList.toggle('hidden', !!profile.youtube_channel_id);
       $('discordBtn').classList.toggle('hidden', !!profile.discord_linked || !!data.discord_pending);
+      $('testDeductBtn').classList.toggle('hidden', Number(profile.viewer_id) !== 1);
+      $('testDeductBtn').disabled = false;
+      $('testDeductBtn').textContent = 'Test -100 PTS';
       $('logoutBtn').classList.remove('hidden');
       const twitch = profile.twitch_login || data.session?.twitch_login || '';
       const youtube = profile.youtube_display_name || data.session?.youtube_display_name || profile.youtube_handle || data.session?.youtube_handle || '';

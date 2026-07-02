@@ -23,6 +23,8 @@ export default {
       if (url.pathname === '/admin/pending-twitch-links/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_twitch_links');
       if (url.pathname === '/admin/pending-unlinks' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_unlinks');
       if (url.pathname === '/admin/pending-unlinks/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_unlinks');
+      if (url.pathname === '/admin/pending-test-deductions' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_test_deductions');
+      if (url.pathname === '/admin/pending-test-deductions/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_test_deductions');
 
       if (url.pathname === '/profile/twitch/login' && request.method === 'GET') return await twitchLogin(request, url, env);
       if (url.pathname === '/profile/twitch/callback' && request.method === 'GET') return await twitchCallback(request, url, env);
@@ -32,6 +34,7 @@ export default {
       if (url.pathname === '/profile/youtube/callback' && request.method === 'GET') return await youtubeCallback(request, url, env);
       if (url.pathname === '/profile/me' && request.method === 'GET') return await profileMe(request, env);
       if (url.pathname === '/profile/unlink' && request.method === 'POST') return await profileUnlink(request, env);
+      if (url.pathname === '/profile/test-deduct' && request.method === 'POST') return await profileTestDeduct(request, env);
       if (url.pathname === '/profile/logout' && request.method === 'POST') return cors(new Response(JSON.stringify({ ok: true }), { headers: { ...JSON_HEADERS, 'set-cookie': sessionCookie('', 0) } }), request);
       return json({ ok: false, error: 'not found' }, 404);
     } catch (err) {
@@ -199,6 +202,24 @@ async function youtubeCallback(request, url, env) {
   return callbackRedirect(oauthState.return_to, 'peanut_youtube_oauth', session);
 }
 
+
+
+async function profileTestDeduct(request, env) {
+  const session = await getSession(request, env);
+  if (!session) return json({ ok: false, error: 'not logged in' }, 401);
+  const { where, value } = identityWhere(session);
+  if (!where) return json({ ok: false, error: 'no identity' }, 401);
+  const profile = await env.DB.prepare(`SELECT * FROM viewer_profiles_v2 WHERE ${where}=?`).bind(value).first();
+  if (!profile) return json({ ok: false, error: 'profile not found' }, 404);
+  if (Number(profile.viewer_id) !== 1) return json({ ok: false, error: 'Jimpae test only' }, 403);
+  const amount = -100;
+  const res = await env.DB.prepare(`
+    INSERT INTO pending_test_deductions
+    (viewer_id, session_provider, session_subject, amount, reason, status, created_at)
+    VALUES (?, ?, ?, ?, ?, 'pending', ?)
+  `).bind(Number(profile.viewer_id), session.provider || null, value || null, amount, 'profile_test_button', new Date().toISOString()).run();
+  return json({ ok: true, status: 'pending', amount, id: res?.meta?.last_row_id || null });
+}
 
 async function profileUnlink(request, env) {
   const session = await getSession(request, env);

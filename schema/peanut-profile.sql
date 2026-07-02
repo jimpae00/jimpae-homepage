@@ -92,3 +92,18 @@ CREATE TABLE IF NOT EXISTS pending_twitch_links (
 
 CREATE INDEX IF NOT EXISTS idx_pending_twitch_links_status
 ON pending_twitch_links(status, id);
+
+CREATE TABLE IF NOT EXISTS pending_test_deductions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  viewer_id INTEGER NOT NULL,
+  session_provider TEXT,
+  session_subject TEXT,
+  amount INTEGER NOT NULL,
+  reason TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TEXT NOT NULL,
+  applied_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_pending_test_deductions_status
+ON pending_test_deductions(status, id);
