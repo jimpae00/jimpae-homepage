@@ -77,3 +77,18 @@ CREATE TABLE IF NOT EXISTS pending_unlinks (
 );
 CREATE INDEX IF NOT EXISTS idx_pending_unlinks_status
 ON pending_unlinks(status, id);
+
+CREATE TABLE IF NOT EXISTS pending_twitch_links (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  twitch_user_id TEXT NOT NULL,
+  twitch_login TEXT,
+  twitch_display_name TEXT,
+  youtube_channel_id TEXT,
+  discord_user_id TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TEXT NOT NULL,
+  applied_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_pending_twitch_links_status
+ON pending_twitch_links(status, id);

@@ -76,6 +76,8 @@
     });
 
     function renderLoggedOut(message='尚未登入 Twitch / YouTube。'){
+      $('loginBtn').textContent = 'Login with Twitch';
+      $('youtubeBtn').textContent = 'Login with YouTube';
       $('loginBtn').classList.remove('hidden');
       $('youtubeBtn').classList.remove('hidden');
       $('discordBtn').classList.add('hidden');
@@ -86,6 +88,8 @@
 
     function renderProfile(data){
       const profile = data.profile || {};
+      $('loginBtn').textContent = 'Connect Twitch';
+      $('youtubeBtn').textContent = 'Connect YouTube';
       $('loginBtn').classList.toggle('hidden', !!profile.twitch_user_id);
       $('youtubeBtn').classList.toggle('hidden', !!profile.youtube_channel_id);
       $('discordBtn').classList.toggle('hidden', !!profile.discord_linked || !!data.discord_pending);
