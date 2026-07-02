@@ -107,3 +107,19 @@ CREATE TABLE IF NOT EXISTS pending_test_deductions (
 
 CREATE INDEX IF NOT EXISTS idx_pending_test_deductions_status
 ON pending_test_deductions(status, id);
+
+CREATE TABLE IF NOT EXISTS pending_peanut_redeems (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  viewer_id INTEGER NOT NULL,
+  season_number INTEGER NOT NULL,
+  cost INTEGER NOT NULL,
+  session_provider TEXT,
+  session_subject TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  message TEXT,
+  created_at TEXT NOT NULL,
+  applied_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_pending_peanut_redeems_status
+ON pending_peanut_redeems(status, id);

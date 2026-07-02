@@ -25,6 +25,8 @@ export default {
       if (url.pathname === '/admin/pending-unlinks/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_unlinks');
       if (url.pathname === '/admin/pending-test-deductions' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_test_deductions');
       if (url.pathname === '/admin/pending-test-deductions/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_test_deductions');
+      if (url.pathname === '/admin/pending-peanut-redeems' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_peanut_redeems');
+      if (url.pathname === '/admin/pending-peanut-redeems/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_peanut_redeems');
 
       if (url.pathname === '/profile/twitch/login' && request.method === 'GET') return await twitchLogin(request, url, env);
       if (url.pathname === '/profile/twitch/callback' && request.method === 'GET') return await twitchCallback(request, url, env);
@@ -35,6 +37,7 @@ export default {
       if (url.pathname === '/profile/me' && request.method === 'GET') return await profileMe(request, env);
       if (url.pathname === '/profile/unlink' && request.method === 'POST') return await profileUnlink(request, env);
       if (url.pathname === '/profile/test-deduct' && request.method === 'POST') return await profileTestDeduct(request, env);
+      if (url.pathname === '/profile/redeem-s57' && request.method === 'POST') return await profileRedeemS57(request, env);
       if (url.pathname === '/profile/logout' && request.method === 'POST') return cors(new Response(JSON.stringify({ ok: true }), { headers: { ...JSON_HEADERS, 'set-cookie': sessionCookie('', 0) } }), request);
       return json({ ok: false, error: 'not found' }, 404);
     } catch (err) {
@@ -203,6 +206,28 @@ async function youtubeCallback(request, url, env) {
 }
 
 
+
+
+async function profileRedeemS57(request, env) {
+  const session = await getSession(request, env);
+  if (!session) return json({ ok: false, error: 'not logged in' }, 401);
+  const { where, value } = identityWhere(session);
+  if (!where) return json({ ok: false, error: 'no identity' }, 401);
+  const profile = await env.DB.prepare(`SELECT * FROM viewer_profiles_v2 WHERE ${where}=?`).bind(value).first();
+  if (!profile) return json({ ok: false, error: 'profile not found' }, 404);
+  const owned = await env.DB.prepare('SELECT 1 FROM peanut_ownerships_v2 WHERE viewer_id=? AND season_number=57 LIMIT 1').bind(Number(profile.viewer_id)).first();
+  if (owned) return json({ ok: false, error: '你已經有 S57 花生證。', code: 'already_owned' }, 409);
+  const points = Number(profile.points || 0);
+  if (points < 1000) return json({ ok: false, error: '占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。', code: 'insufficient_points', points, cost: 1000 }, 402);
+  const existing = await env.DB.prepare("SELECT id FROM pending_peanut_redeems WHERE viewer_id=? AND season_number=57 AND status='pending' LIMIT 1").bind(Number(profile.viewer_id)).first();
+  if (existing) return json({ ok: true, status: 'pending', id: existing.id, season_number: 57, cost: 1000 });
+  const res = await env.DB.prepare(`
+    INSERT INTO pending_peanut_redeems
+    (viewer_id, season_number, cost, session_provider, session_subject, status, created_at)
+    VALUES (?, 57, 1000, ?, ?, 'pending', ?)
+  `).bind(Number(profile.viewer_id), session.provider || null, value || null, new Date().toISOString()).run();
+  return json({ ok: true, status: 'pending', id: res?.meta?.last_row_id || null, season_number: 57, cost: 1000 });
+}
 
 async function profileTestDeduct(request, env) {
   const session = await getSession(request, env);

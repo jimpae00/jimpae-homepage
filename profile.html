@@ -27,6 +27,7 @@
         <a class="btn btn-primary" id="loginBtn" href="#">Login with Twitch</a>
         <a class="btn btn-primary hidden" id="discordBtn" href="#">Connect Discord</a>
         <a class="btn btn-primary" id="youtubeBtn" href="#">Login with YouTube</a>
+        <button class="btn btn-primary hidden" id="redeemS57Btn">Redeem S57 花生證（1000 占幣）</button>
         <button class="btn btn-ghost hidden" id="testDeductBtn">Test -100 PTS</button>
         <button class="btn btn-ghost hidden" id="logoutBtn">Logout</button>
       </div>
@@ -59,6 +60,16 @@
     $('loginBtn').href = `${API}/profile/twitch/login?return_to=${encodeURIComponent(returnTo)}`;
     $('discordBtn').href = `${API}/profile/discord/login?return_to=${encodeURIComponent(returnTo)}`;
     $('youtubeBtn').href = `${API}/profile/youtube/login?return_to=${encodeURIComponent(returnTo)}`;
+    $('redeemS57Btn').addEventListener('click', async () => {
+      if(!confirm('兌換 S57 花生證？將扣 1000 占幣。')) return;
+      $('redeemS57Btn').disabled = true;
+      $('redeemS57Btn').textContent = '兌換處理中...';
+      const res = await fetch(`${API}/profile/redeem-s57`, {method:'POST', credentials:'include'});
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok || !data.ok){ alert(data.error || `兌換失敗：HTTP ${res.status}`); $('redeemS57Btn').disabled=false; $('redeemS57Btn').textContent='Redeem S57 花生證（1000 占幣）'; return; }
+      alert('S57 花生證兌換已提交，等幾秒 refresh 會更新。');
+    });
+
     $('testDeductBtn').addEventListener('click', async () => {
       if(!confirm('Jimpae test only：扣你 profile 100 占幣，並寫入 internal log。繼續？')) return;
       $('testDeductBtn').disabled = true;
@@ -92,6 +103,7 @@
       $('loginBtn').classList.remove('hidden');
       $('youtubeBtn').classList.remove('hidden');
       $('discordBtn').classList.add('hidden');
+      $('redeemS57Btn').classList.add('hidden');
       $('testDeductBtn').classList.add('hidden');
       $('logoutBtn').classList.add('hidden');
       $('accountBox').innerHTML = `<p class="muted">${escapeHtml(message)}</p>`;
@@ -105,6 +117,10 @@
       $('loginBtn').classList.toggle('hidden', !!profile.twitch_user_id);
       $('youtubeBtn').classList.toggle('hidden', !!profile.youtube_channel_id);
       $('discordBtn').classList.toggle('hidden', !!profile.discord_linked || !!data.discord_pending);
+      const ownsS57 = (data.seasons || []).some(s => Number(s.season_number) === 57);
+      $('redeemS57Btn').classList.toggle('hidden', ownsS57 || Number(profile.points || 0) < 1000);
+      $('redeemS57Btn').disabled = false;
+      $('redeemS57Btn').textContent = 'Redeem S57 花生證（1000 占幣）';
       $('testDeductBtn').classList.toggle('hidden', Number(profile.viewer_id) !== 1);
       $('testDeductBtn').disabled = false;
       $('testDeductBtn').textContent = 'Test -100 PTS';
@@ -115,7 +131,8 @@
       const discord = profile.discord_linked ? '<span class="ok">已連結</span>' : (data.discord_pending ? '<span class="warn">連結處理中</span>' : '<span class="warn">未連結</span>');
       const synced = profile.last_synced_at ? new Date(profile.last_synced_at).toLocaleString('zh-HK', {hour12:false}) : '未有同步時間';
       const pts = profile.points != null ? `${Number(profile.points).toLocaleString()} 占幣${profile.points_rank ? ` · #${profile.points_rank}` : ''}` : '未見到';
-      const ptsHint = profile.points == null ? '<div class="muted" style="font-size:12px;margin-top:4px">排行榜未同步，或 Twitch/YouTube 名稱未 match。</div>' : '';
+      const ownsS57Pre = (data.seasons || []).some(s => Number(s.season_number) === 57);
+      const ptsHint = profile.points == null ? '<div class="muted" style="font-size:12px;margin-top:4px">排行榜未同步，或 Twitch/YouTube 名稱未 match。</div>' : (Number(profile.points || 0) < 1000 && !ownsS57Pre ? '<div class="muted" style="font-size:12px;margin-top:4px">占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。</div>' : '');
       const roleHint = profile.discord_linked
         ? '<div class="muted" style="font-size:12px;margin-top:4px">有花生證時會自動同步 Discord 身份組；可能有少少延遲。</div>'
         : '<div class="muted" style="font-size:12px;margin-top:4px">Connect Discord 後，有花生證會自動補身份組。</div>';
