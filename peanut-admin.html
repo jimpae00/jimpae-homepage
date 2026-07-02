@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Peanut Admin</title>
   <style>
-    body{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:#091014;color:#e8f6f2;margin:0;padding:18px} a{color:#78e0c3}.wrap{max-width:1280px;margin:0 auto}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.card{background:#0f1c22;border:1px solid #21414a;border-radius:14px;padding:14px;box-shadow:0 8px 28px #0006}.muted{color:#89a6a9}.ok{color:#77e58f}.bad{color:#ff7b7b}.warn{color:#ffd166}button{background:#1a5362;color:#fff;border:0;border-radius:10px;padding:9px 12px;cursor:pointer}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #1f3940;padding:7px;text-align:left;vertical-align:top}th{position:sticky;top:0;background:#13252c;z-index:1}.scroll{max-height:520px;overflow:auto;border:1px solid #1f3940;border-radius:10px}.pill{display:inline-block;border:1px solid #2f6673;border-radius:999px;padding:2px 8px;margin:2px}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}input{background:#081116;color:#fff;border:1px solid #2b515b;border-radius:8px;padding:8px}.small{font-size:12px}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}</style>
+    body{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:#091014;color:#e8f6f2;margin:0;padding:18px} a{color:#78e0c3}.wrap{max-width:1280px;margin:0 auto}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.card{background:#0f1c22;border:1px solid #21414a;border-radius:14px;padding:14px;box-shadow:0 8px 28px #0006}.muted{color:#89a6a9}.ok{color:#77e58f}.bad{color:#ff7b7b}.warn{color:#ffd166}button{background:#1a5362;color:#fff;border:0;border-radius:10px;padding:9px 12px;cursor:pointer}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #1f3940;padding:7px;text-align:left;vertical-align:top}th{position:sticky;top:0;background:#13252c;z-index:1;cursor:pointer;user-select:none}th:hover{background:#1b3740}.scroll{max-height:520px;overflow:auto;border:1px solid #1f3940;border-radius:10px}.pill{display:inline-block;border:1px solid #2f6673;border-radius:999px;padding:2px 8px;margin:2px}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}input{background:#081116;color:#fff;border:1px solid #2b515b;border-radius:8px;padding:8px}.small{font-size:12px}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}</style>
 </head>
 <body><div class="wrap">
   <h1>Peanut Admin</h1>
@@ -16,7 +16,25 @@
 const API='https://peanut-api.jimpae.info';
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 function cls(status){ status=String(status||''); if(['applied','synced','ok','already_owned'].includes(status))return'ok'; if(['failed','error'].some(x=>status.includes(x)))return'bad'; return 'warn'; }
-function table(rows, cols){return `<div class="scroll"><table><thead><tr>${cols.map(c=>`<th>${esc(c[0])}</th>`).join('')}</tr></thead><tbody>${(rows||[]).map(r=>`<tr>${cols.map(c=>`<td>${typeof c[1]==='function'?c[1](r):esc(r[c[1]])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}
+let sortState={};
+function sortVal(r,c){
+ if(typeof c[2]==='function') return c[2](r);
+ const k=c[2]||c[1];
+ if(typeof k==='string') return r[k];
+ return '';
+}
+function cmp(a,b){
+ const na=Number(a), nb=Number(b);
+ if(a!==''&&b!==''&&!Number.isNaN(na)&&!Number.isNaN(nb)) return na-nb;
+ const da=Date.parse(a), db=Date.parse(b);
+ if(!Number.isNaN(da)&&!Number.isNaN(db)) return da-db;
+ return String(a??'').localeCompare(String(b??''),'zh-Hant',{numeric:true,sensitivity:'base'});
+}
+function table(id, rows, cols){
+ const st=sortState[id]||{idx:0,dir:'desc'};
+ const sorted=[...(rows||[])].sort((a,b)=>cmp(sortVal(a,cols[st.idx]),sortVal(b,cols[st.idx]))*(st.dir==='asc'?1:-1));
+ return `<div class="scroll"><table data-table="${esc(id)}"><thead><tr>${cols.map((c,i)=>`<th data-sort="${i}">${esc(c[0])}${st.idx===i?(st.dir==='asc'?' ▲':' ▼'):''}</th>`).join('')}</tr></thead><tbody>${sorted.map(r=>`<tr>${cols.map(c=>`<td>${typeof c[1]==='function'?c[1](r):esc(r[c[1]])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
+}
 function userLabel(r){
  const login=r.twitch_login||r.platform_login||r.youtube_handle||r.discord_username||r.viewer_label||'';
  const display=r.twitch_display_name||r.youtube_display_name||r.display_name||'';
@@ -31,12 +49,21 @@ function render(d){
   <div class="card"><h2>System Health</h2><p>Generated: <span class="mono">${esc(d.generated_at)}</span></p><p>Sync: <span class="${h.sync_active?'ok':'bad'}">${h.sync_active?'active':'not active'}</span></p><p>Peanut service: <span class="${h.peanut_service_active?'ok':'bad'}">${h.peanut_service_active?'active':'not active'}</span></p><p>Windows DB: <span class="${h.windows_leaderboard_ok?'ok':'bad'}">${h.windows_leaderboard_ok?'OK':'error'}</span></p><p class="muted small">${esc(h.windows_leaderboard_message||'')}</p></div>
   <div class="card"><h2>Needs Attention</h2><p>Failed S57: <b class="${failed.s57?.length?'bad':'ok'}">${failed.s57?.length||0}</b></p><p>Failed PTS: <b class="${failed.points?.length?'bad':'ok'}">${failed.points?.length||0}</b></p><p>Discord errors: <b class="${failed.discord?.length?'bad':'ok'}">${failed.discord?.length||0}</b></p></div>
  </div>
- <div class="card"><h2>S57 Redeem Status</h2><p class="muted">可直接喺表格入面 scroll。</p>${table(d.s57_redeems||[], [['時間','created_at'],['viewer',r=>`${userLabel(r)}<br><span class="muted">viewer_id ${esc(r.viewer_id)}</span>`],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`],['扣分',r=>`${esc(r.before_points)} → ${esc(r.after_points)}`],['key','leaderboard_key'],['message','message']])}</div>
- <div class="card"><h2>PTS Channel Point Redeems</h2>${table(d.points_redeems||[], [['時間','created_at'],['user',r=>`${userLabel(r)}<br><span class="muted">${esc(r.platform_user_id)}</span>`],['PTS',r=>`${esc(r.before_points)} → ${esc(r.after_points)}`],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`],['event','source_event_id']])}</div>
- <div class="card"><h2>Discord Sync</h2>${table(d.discord_sync||[], [['時間','created_at'],['viewer','viewer_id'],['season','season_number'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`],['message','message']])}</div>
- <div class="card"><h2>Identity Changes</h2>${table(d.identity_changes||[], [['時間','created_at'],['viewer','viewer_id'],['type','change_type'],['Twitch',r=>`${esc(r.old_twitch_login||r.old_twitch_user_id||'')} → ${esc(r.new_twitch_login||r.new_twitch_user_id||'')}`],['YouTube',r=>`${esc(r.old_youtube_handle||r.old_youtube_channel_id||'')} → ${esc(r.new_youtube_handle||r.new_youtube_channel_id||'')}`]])}</div>
+ <div class="card"><h2>S57 Redeem Status</h2><p class="muted">可直接喺表格入面 scroll。</p>${table('s57', d.s57_redeems||[], [['時間','created_at'],['viewer',r=>`${userLabel(r)}<br><span class="muted">viewer_id ${esc(r.viewer_id)}</span>`,'viewer_label'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`,'status'],['扣分',r=>`${esc(r.before_points)} → ${esc(r.after_points)}`,'after_points'],['key','leaderboard_key'],['message','message']])}</div>
+ <div class="card"><h2>PTS Channel Point Redeems</h2>${table('points', d.points_redeems||[], [['時間','created_at'],['user',r=>`${userLabel(r)}<br><span class="muted">${esc(r.platform_user_id)}</span>`,'platform_login'],['PTS',r=>`${esc(r.before_points)} → ${esc(r.after_points)}`,'after_points'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`,'status'],['event','source_event_id']])}</div>
+ <div class="card"><h2>Discord Sync</h2>${table('discord', d.discord_sync||[], [['時間','created_at'],['viewer','viewer_id'],['season','season_number'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`,'status'],['message','message']])}</div>
+ <div class="card"><h2>Identity Changes</h2>${table('identity', d.identity_changes||[], [['時間','created_at'],['viewer','viewer_id'],['type','change_type'],['Twitch',r=>`${esc(r.old_twitch_login||r.old_twitch_user_id||'')} → ${esc(r.new_twitch_login||r.new_twitch_user_id||'')}`,'new_twitch_login'],['YouTube',r=>`${esc(r.old_youtube_handle||r.old_youtube_channel_id||'')} → ${esc(r.new_youtube_handle||r.new_youtube_channel_id||'')}`,'new_youtube_handle']])}</div>
  `;
 }
-async function load(){status.textContent='載入中...';try{const r=await fetch(`${API}/profile/admin/status`,{credentials:'include'});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||`HTTP ${r.status}`);status.textContent=`更新：${j.updated_at||'未有'}`;render(j.data)}catch(e){status.textContent='';root.innerHTML=`<p class="bad">載入失敗：${esc(e.message)}</p><p class="muted">請先用 Jimpae account 登入 /profile。</p>`}}
+let currentData=null;
+async function load(){status.textContent='載入中...';try{const r=await fetch(`${API}/profile/admin/status`,{credentials:'include'});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||`HTTP ${r.status}`);status.textContent=`更新：${j.updated_at||'未有'}`;currentData=j.data;render(j.data)}catch(e){status.textContent='';root.innerHTML=`<p class="bad">載入失敗：${esc(e.message)}</p><p class="muted">請先用 Jimpae account 登入 /profile。</p>`}}
+root.addEventListener('click', e=>{
+ const th=e.target.closest('th[data-sort]'); if(!th) return;
+ const tableEl=th.closest('table[data-table]'); if(!tableEl) return;
+ const id=tableEl.dataset.table; const idx=Number(th.dataset.sort);
+ const cur=sortState[id]||{idx:0,dir:'desc'};
+ sortState[id]={idx,dir:(cur.idx===idx&&cur.dir==='asc')?'desc':'asc'};
+ if(currentData) render(currentData);
+});
 refresh.onclick=load;load();
 </script></body></html>
