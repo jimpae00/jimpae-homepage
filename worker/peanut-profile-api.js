@@ -183,6 +183,11 @@ async function discordCallback(request, url, env) {
 async function youtubeLogin(request, url, env) {
   requireEnv(env, ['GOOGLE_CLIENT_ID', 'GOOGLE_REDIRECT_URI']);
   const session = await getSession(request, env);
+  let currentProfile = null;
+  if (session) {
+    const ident = identityWhere(session);
+    if (ident.where) currentProfile = await env.DB.prepare(`SELECT * FROM viewer_profiles_v2 WHERE ${ident.where}=?`).bind(ident.value).first();
+  }
   const state = randomHex(16);
   const returnTo = url.searchParams.get('return_to') || 'https://jimpae.info/profile';
   const auth = new URL('https://accounts.google.com/o/oauth2/v2/auth');
@@ -193,7 +198,13 @@ async function youtubeLogin(request, url, env) {
   auth.searchParams.set('access_type', 'online');
   auth.searchParams.set('prompt', 'select_account');
   auth.searchParams.set('state', state);
-  return redirectWithCookie(auth.toString(), 'peanut_youtube_oauth', { state, return_to: returnTo, twitch_user_id: session?.twitch_user_id || '', discord_user_id: session?.discord_user_id || '' });
+  return redirectWithCookie(auth.toString(), 'peanut_youtube_oauth', {
+    state,
+    return_to: returnTo,
+    twitch_user_id: session?.twitch_user_id || currentProfile?.twitch_user_id || '',
+    discord_user_id: session?.discord_user_id || currentProfile?.discord_user_id || '',
+    current_viewer_id: currentProfile?.viewer_id || '',
+  });
 }
 
 async function youtubeCallback(request, url, env) {
@@ -205,8 +216,8 @@ async function youtubeCallback(request, url, env) {
   const ch = (await chRes.json()).items?.[0];
   if (!ch) return json({ ok: false, error: 'youtube channel not found' }, 502);
   const snippet = ch.snippet || {};
-  await env.DB.prepare('INSERT INTO pending_youtube_links (youtube_channel_id, youtube_handle, youtube_display_name, twitch_user_id, discord_user_id, status, created_at) VALUES (?, ?, ?, ?, ?, \'pending\', ?)')
-    .bind(String(ch.id), snippet.customUrl || null, snippet.title || null, oauthState.twitch_user_id || null, oauthState.discord_user_id || null, new Date().toISOString()).run();
+  await env.DB.prepare('INSERT INTO pending_youtube_links (youtube_channel_id, youtube_handle, youtube_display_name, twitch_user_id, discord_user_id, current_viewer_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, \'pending\', ?)')
+    .bind(String(ch.id), snippet.customUrl || null, snippet.title || null, oauthState.twitch_user_id || null, oauthState.discord_user_id || null, oauthState.current_viewer_id || null, new Date().toISOString()).run();
   const session = await signSession({ provider: 'youtube', youtube_channel_id: String(ch.id), youtube_handle: snippet.customUrl || '', youtube_display_name: snippet.title || '', exp: sessionExp() }, env.COOKIE_SECRET);
   return callbackRedirect(oauthState.return_to, 'peanut_youtube_oauth', session);
 }

@@ -24,11 +24,11 @@
       <h1>花生證 Profile</h1>
       <p class="subtitle">用 Twitch 或 YouTube 登入，查看你擁有嘅花生證 season，同 Discord 連結狀態。資料由直播系統同步，可能有少少延遲。</p>
       <div class="actions" id="actions">
-        <a class="btn btn-primary" id="loginBtn" href="#">Login with Twitch</a>
+        <a class="btn btn-primary" id="loginBtn" href="#">登入 Twitch</a>
         <a class="btn btn-primary hidden" id="discordBtn" href="#">Connect Discord</a>
-        <a class="btn btn-primary" id="youtubeBtn" href="#">Login with YouTube</a>
-        <button class="btn btn-primary hidden" id="redeemS57Btn">Redeem S57 花生證（1000 占幣）</button>
-        <button class="btn btn-ghost hidden" id="testDeductBtn">Test -100 PTS</button>
+        <a class="btn btn-primary" id="youtubeBtn" href="#">登入 YouTube</a>
+        <button class="btn btn-primary hidden" id="redeemS57Btn">兌換 S57 花生證（1000 占幣）</button>
+        <button class="btn btn-ghost hidden" id="testDeductBtn">測試扣 100 占幣</button>
         <button class="btn btn-ghost hidden" id="logoutBtn">Logout</button>
       </div>
     </section>
@@ -66,7 +66,7 @@
       $('redeemS57Btn').textContent = '兌換處理中...';
       const res = await fetch(`${API}/profile/redeem-s57`, {method:'POST', credentials:'include'});
       const data = await res.json().catch(()=>({}));
-      if(!res.ok || !data.ok){ alert(data.error || `兌換失敗：HTTP ${res.status}`); $('redeemS57Btn').disabled=false; $('redeemS57Btn').textContent='Redeem S57 花生證（1000 占幣）'; return; }
+      if(!res.ok || !data.ok){ alert(data.error || `兌換失敗：HTTP ${res.status}`); $('redeemS57Btn').disabled=false; $('redeemS57Btn').textContent='兌換 S57 花生證（1000 占幣）'; return; }
       alert('S57 花生證兌換已提交，等幾秒 refresh 會更新。');
     });
 
@@ -76,7 +76,7 @@
       $('testDeductBtn').textContent = 'Queued...';
       const res = await fetch(`${API}/profile/test-deduct`, {method:'POST', credentials:'include'});
       const data = await res.json().catch(()=>({}));
-      if(!res.ok || !data.ok){ alert(data.error || `Test deduct failed: HTTP ${res.status}`); $('testDeductBtn').disabled=false; $('testDeductBtn').textContent='Test -100 PTS'; return; }
+      if(!res.ok || !data.ok){ alert(data.error || `Test deduct failed: HTTP ${res.status}`); $('testDeductBtn').disabled=false; $('testDeductBtn').textContent='測試扣 100 占幣'; return; }
       alert(`Test deduction queued: ${data.amount} 占幣。15–30 秒後 refresh / 查 log。`);
     });
 
@@ -88,18 +88,18 @@
       const btn = e.target.closest('[data-unlink]');
       if(!btn) return;
       const platform = btn.dataset.unlink;
-      if(!confirm(`Unlink ${platform}?\n\n只會解除這個登入身份。\n不會刪除花生證。\n不會移除 Discord role。\n之後可隨時重新登入再連結。`)) return;
+      if(!confirm(`解除連結 ${platform}?\n\n只會解除這個登入身份。\n不會刪除花生證。\n不會移除 Discord role。\n之後可隨時重新登入再連結。`)) return;
       btn.disabled = true;
-      btn.textContent = 'Pending';
+      btn.textContent = '處理中';
       const res = await fetch(`${API}/profile/unlink`, {method:'POST', credentials:'include', headers:{'content-type':'application/json'}, body:JSON.stringify({platform})});
       const data = await res.json().catch(()=>({}));
-      if(!res.ok || !data.ok){ alert(data.error || `Unlink failed: HTTP ${res.status}`); btn.disabled=false; btn.textContent='Unlink'; return; }
-      alert('Unlink queued. 15–30 秒後 refresh 會更新。');
+      if(!res.ok || !data.ok){ alert(data.error || `解除連結 failed: HTTP ${res.status}`); btn.disabled=false; btn.textContent='解除連結'; return; }
+      alert('解除連結 queued. 15–30 秒後 refresh 會更新。');
     });
 
     function renderLoggedOut(message='尚未登入 Twitch / YouTube。'){
-      $('loginBtn').textContent = 'Login with Twitch';
-      $('youtubeBtn').textContent = 'Login with YouTube';
+      $('loginBtn').textContent = '登入 Twitch';
+      $('youtubeBtn').textContent = '登入 YouTube';
       $('loginBtn').classList.remove('hidden');
       $('youtubeBtn').classList.remove('hidden');
       $('discordBtn').classList.add('hidden');
@@ -112,18 +112,18 @@
 
     function renderProfile(data){
       const profile = data.profile || {};
-      $('loginBtn').textContent = profile.twitch_user_id ? 'Replace Twitch' : 'Connect Twitch';
-      $('youtubeBtn').textContent = 'Connect YouTube';
+      $('loginBtn').textContent = profile.twitch_user_id ? '更換 Twitch' : '連結 Twitch';
+      $('youtubeBtn').textContent = profile.youtube_channel_id ? '更換 YouTube' : '連結 YouTube';
       $('loginBtn').classList.remove('hidden');
-      $('youtubeBtn').classList.toggle('hidden', !!profile.youtube_channel_id);
+      $('youtubeBtn').classList.remove('hidden');
       $('discordBtn').classList.toggle('hidden', !!profile.discord_linked || !!data.discord_pending);
       const ownsS57 = (data.seasons || []).some(s => Number(s.season_number) === 57);
       $('redeemS57Btn').classList.toggle('hidden', ownsS57 || Number(profile.points || 0) < 1000);
       $('redeemS57Btn').disabled = false;
-      $('redeemS57Btn').textContent = 'Redeem S57 花生證（1000 占幣）';
+      $('redeemS57Btn').textContent = '兌換 S57 花生證（1000 占幣）';
       $('testDeductBtn').classList.toggle('hidden', Number(profile.viewer_id) !== 1);
       $('testDeductBtn').disabled = false;
-      $('testDeductBtn').textContent = 'Test -100 PTS';
+      $('testDeductBtn').textContent = '測試扣 100 占幣';
       $('logoutBtn').classList.remove('hidden');
       const twitch = profile.twitch_login || data.session?.twitch_login || '';
       const youtube = profile.youtube_display_name || data.session?.youtube_display_name || profile.youtube_handle || data.session?.youtube_handle || '';
@@ -136,7 +136,7 @@
       const roleHint = profile.discord_linked
         ? '<div class="muted" style="font-size:12px;margin-top:4px">有花生證時會自動同步 Discord 身份組；可能有少少延遲。</div>'
         : '<div class="muted" style="font-size:12px;margin-top:4px">Connect Discord 後，有花生證會自動補身份組。</div>';
-      const unlinkBtn = (platform, enabled) => enabled ? `<button class="unlink" data-unlink="${platform}">Unlink</button>` : '';
+      const unlinkBtn = (platform, enabled) => enabled ? `<button class="unlink" data-unlink="${platform}">解除連結</button>` : '';
       $('accountBox').innerHTML = `
         <div class="stat"><strong>PTS</strong><span class="stat-value"><span>${escapeHtml(pts)}${ptsHint}</span></span></div>
         <div class="stat"><strong>Twitch</strong><span class="stat-value"><span>${escapeHtml(twitch ? '@'+twitch : '—')}</span>${unlinkBtn('twitch', !!profile.twitch_user_id)}</span></div>
