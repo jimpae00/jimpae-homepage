@@ -17,6 +17,12 @@ const API='https://peanut-api.jimpae.info';
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 function cls(status){ status=String(status||''); if(['applied','synced','ok','already_owned'].includes(status))return'ok'; if(['failed','error'].some(x=>status.includes(x)))return'bad'; return 'warn'; }
 function table(rows, cols){return `<div class="scroll"><table><thead><tr>${cols.map(c=>`<th>${esc(c[0])}</th>`).join('')}</tr></thead><tbody>${(rows||[]).map(r=>`<tr>${cols.map(c=>`<td>${typeof c[1]==='function'?c[1](r):esc(r[c[1]])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}
+function userLabel(r){
+ const login=r.twitch_login||r.platform_login||r.youtube_handle||r.discord_username||r.viewer_label||'';
+ const display=r.twitch_display_name||r.youtube_display_name||r.display_name||'';
+ if(login && display && String(login).toLowerCase()!==String(display).toLowerCase()) return `${esc(login)} <span class="muted">（${esc(display)}）</span>`;
+ return esc(login||display||'—');
+}
 function render(d){
  if(!d){root.innerHTML='<p class="muted">未有 admin snapshot。</p>';return}
  const h=d.health||{}, failed=d.failed||{};
@@ -25,8 +31,8 @@ function render(d){
   <div class="card"><h2>System Health</h2><p>Generated: <span class="mono">${esc(d.generated_at)}</span></p><p>Sync: <span class="${h.sync_active?'ok':'bad'}">${h.sync_active?'active':'not active'}</span></p><p>Peanut service: <span class="${h.peanut_service_active?'ok':'bad'}">${h.peanut_service_active?'active':'not active'}</span></p><p>Windows DB: <span class="${h.windows_leaderboard_ok?'ok':'bad'}">${h.windows_leaderboard_ok?'OK':'error'}</span></p><p class="muted small">${esc(h.windows_leaderboard_message||'')}</p></div>
   <div class="card"><h2>Needs Attention</h2><p>Failed S57: <b class="${failed.s57?.length?'bad':'ok'}">${failed.s57?.length||0}</b></p><p>Failed PTS: <b class="${failed.points?.length?'bad':'ok'}">${failed.points?.length||0}</b></p><p>Discord errors: <b class="${failed.discord?.length?'bad':'ok'}">${failed.discord?.length||0}</b></p></div>
  </div>
- <div class="card"><h2>S57 Redeem Status</h2><p class="muted">可直接喺表格入面 scroll。</p>${table(d.s57_redeems||[], [['時間','created_at'],['viewer','viewer_label'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`],['扣分',r=>`${esc(r.before_points)} → ${esc(r.after_points)}`],['key','leaderboard_key'],['message','message']])}</div>
- <div class="card"><h2>PTS Channel Point Redeems</h2>${table(d.points_redeems||[], [['時間','created_at'],['user',r=>`${esc(r.platform_login)}<br><span class="muted">${esc(r.platform_user_id)}</span>`],['PTS',r=>`${esc(r.before_points)} → ${esc(r.after_points)}`],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`],['event','source_event_id']])}</div>
+ <div class="card"><h2>S57 Redeem Status</h2><p class="muted">可直接喺表格入面 scroll。</p>${table(d.s57_redeems||[], [['時間','created_at'],['viewer',r=>`${userLabel(r)}<br><span class="muted">viewer_id ${esc(r.viewer_id)}</span>`],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`],['扣分',r=>`${esc(r.before_points)} → ${esc(r.after_points)}`],['key','leaderboard_key'],['message','message']])}</div>
+ <div class="card"><h2>PTS Channel Point Redeems</h2>${table(d.points_redeems||[], [['時間','created_at'],['user',r=>`${userLabel(r)}<br><span class="muted">${esc(r.platform_user_id)}</span>`],['PTS',r=>`${esc(r.before_points)} → ${esc(r.after_points)}`],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`],['event','source_event_id']])}</div>
  <div class="card"><h2>Discord Sync</h2>${table(d.discord_sync||[], [['時間','created_at'],['viewer','viewer_id'],['season','season_number'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`],['message','message']])}</div>
  <div class="card"><h2>Identity Changes</h2>${table(d.identity_changes||[], [['時間','created_at'],['viewer','viewer_id'],['type','change_type'],['Twitch',r=>`${esc(r.old_twitch_login||r.old_twitch_user_id||'')} → ${esc(r.new_twitch_login||r.new_twitch_user_id||'')}`],['YouTube',r=>`${esc(r.old_youtube_handle||r.old_youtube_channel_id||'')} → ${esc(r.new_youtube_handle||r.new_youtube_channel_id||'')}`]])}</div>
  `;
