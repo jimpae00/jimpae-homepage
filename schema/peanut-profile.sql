@@ -129,3 +129,10 @@ ON pending_peanut_redeems(status, id);
 ALTER TABLE pending_twitch_links ADD COLUMN current_viewer_id INTEGER;
 
 ALTER TABLE pending_youtube_links ADD COLUMN current_viewer_id INTEGER;
+
+
+CREATE TABLE IF NOT EXISTS admin_status_snapshots (
+  snapshot_key TEXT PRIMARY KEY,
+  payload TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);

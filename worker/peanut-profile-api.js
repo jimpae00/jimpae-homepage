@@ -15,6 +15,8 @@ export default {
       if (url.pathname === '/health') return json({ ok: true, service: 'peanut-profile-api', schema: 'viewer_id_v2' });
 
       if (url.pathname === '/admin/sync' && request.method === 'POST') return await adminSync(request, env);
+      if (url.pathname === '/admin/status-sync' && request.method === 'POST') return await adminStatusSync(request, env);
+      if (url.pathname === '/profile/admin/status' && request.method === 'GET') return await profileAdminStatus(request, env);
       if (url.pathname === '/admin/pending-discord-links' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_discord_links');
       if (url.pathname === '/admin/pending-discord-links/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_discord_links');
       if (url.pathname === '/admin/pending-youtube-links' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_youtube_links');
@@ -52,6 +54,34 @@ function requireAdmin(request, env) {
   const got = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
   if (got !== expected) return { ok: false, response: json({ ok: false, error: 'unauthorized' }, 401) };
   return { ok: true };
+}
+
+
+async function adminStatusSync(request, env) {
+  const auth = requireAdmin(request, env);
+  if (!auth.ok) return auth.response;
+  const payload = await request.json();
+  await env.DB.prepare('INSERT OR REPLACE INTO admin_status_snapshots (snapshot_key, payload, updated_at) VALUES (?, ?, ?)')
+    .bind('latest', JSON.stringify(payload), payload.generated_at || new Date().toISOString()).run();
+  return json({ ok: true, updated_at: payload.generated_at || new Date().toISOString() });
+}
+
+async function requireProfileAdmin(request, env) {
+  const session = await getSession(request, env);
+  if (!session) return { ok: false, response: json({ ok: false, error: 'not logged in' }, 401) };
+  const { where, value } = identityWhere(session);
+  if (!where) return { ok: false, response: json({ ok: false, error: 'no identity' }, 401) };
+  const profile = await env.DB.prepare(`SELECT * FROM viewer_profiles_v2 WHERE ${where}=?`).bind(value).first();
+  if (!profile || Number(profile.viewer_id) !== 1) return { ok: false, response: json({ ok: false, error: 'forbidden' }, 403) };
+  return { ok: true, profile };
+}
+
+async function profileAdminStatus(request, env) {
+  const auth = await requireProfileAdmin(request, env);
+  if (!auth.ok) return auth.response;
+  const row = await env.DB.prepare("SELECT payload, updated_at FROM admin_status_snapshots WHERE snapshot_key='latest'").first();
+  if (!row) return json({ ok: true, updated_at: null, data: null });
+  return json({ ok: true, updated_at: row.updated_at, data: JSON.parse(row.payload) });
 }
 
 async function adminSync(request, env) {
