@@ -9,7 +9,7 @@
 </head>
 <body><div class="wrap">
   <h1>Peanut Admin</h1>
-  <div class="toolbar"><a href="/profile">返回 Profile</a><button id="refresh">重新整理</button><span id="status" class="muted"></span></div>
+  <div class="toolbar"><a href="/profile">返回 Profile</a><button id="refresh">重新整理</button><input id="viewerSearch" placeholder="搜尋 viewer handle / ID / Discord" /><button id="searchBtn">搜尋</button><span id="status" class="muted"></span></div>
   <div id="root"></div>
 </div>
 <script>
@@ -41,6 +41,32 @@ function userLabel(r){
  if(login && display && String(login).toLowerCase()!==String(display).toLowerCase()) return `${esc(login)} <span class="muted">（${esc(display)}）</span>`;
  return esc(login||display||'—');
 }
+function norm(s){return String(s||'').trim().toLowerCase().replace(/^@/,'')}
+function viewerMatches(v,q){
+ q=norm(q); if(!q) return false;
+ return [v.viewer_id,v.twitch_user_id,v.twitch_login,v.twitch_display_name,v.youtube_channel_id,v.youtube_handle,v.youtube_display_name,v.discord_user_id,v.discord_username].some(x=>norm(x).includes(q));
+}
+function viewerSearchHtml(d){
+ const q=viewerSearch?.value||''; if(!q.trim()) return '';
+ const matches=(d.viewers||[]).filter(v=>viewerMatches(v,q)).slice(0,20);
+ if(!matches.length) return `<div class="card"><h2>Viewer Search</h2><p class="warn">搵唔到：${esc(q)}</p></div>`;
+ const cards=matches.map(v=>{
+   const vid=Number(v.viewer_id);
+   const s57=(d.s57_redeems||[]).filter(r=>Number(r.viewer_id)===vid);
+   const pts=(d.points_redeems||[]).filter(r=>norm(r.platform_user_id)===norm(v.twitch_user_id)||norm(r.platform_login)===norm(v.twitch_login));
+   const ds=(d.discord_sync||[]).filter(r=>Number(r.viewer_id)===vid);
+   const idc=(d.identity_changes||[]).filter(r=>Number(r.viewer_id)===vid);
+   const seasons=(v.seasons||[]).slice().sort((a,b)=>a-b).map(s=>`<span class="pill">S${esc(s)}</span>`).join('')||'<span class="muted">無</span>';
+   return `<div class="card"><h2>${userLabel(v)} <span class="muted">#${esc(vid)}</span></h2>
+    <div class="grid"><div><b>PTS</b><p>${esc(v.points??'—')} ${v.points_rank?`· #${esc(v.points_rank)}`:''}</p></div><div><b>Twitch</b><p>${esc(v.twitch_login||'—')} ${v.twitch_display_name?`（${esc(v.twitch_display_name)}）`:''}<br><span class="muted">${esc(v.twitch_user_id||'')}</span></p></div><div><b>YouTube</b><p>${esc(v.youtube_handle||'—')} ${v.youtube_display_name?`（${esc(v.youtube_display_name)}）`:''}</p></div><div><b>Discord</b><p>${esc(v.discord_username||'—')}<br><span class="muted">${esc(v.discord_user_id||'')}</span></p></div></div>
+    <p><b>花生證</b><br>${seasons}</p>
+    <h3>S57 Redeem History</h3>${table('search_s57_'+vid,s57,[['時間','created_at'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`,'status'],['扣分',r=>`${esc(r.before_points)} → ${esc(r.after_points)}`,'after_points'],['message','message']])}
+    <h3>PTS Redeem History</h3>${table('search_pts_'+vid,pts,[['時間','created_at'],['PTS',r=>`${esc(r.before_points)} → ${esc(r.after_points)}`,'after_points'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`,'status'],['event','source_event_id']])}
+    <h3>Discord / Identity History</h3>${table('search_discord_'+vid,ds,[['時間','created_at'],['season','season_number'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`,'status'],['message','message']])}${idc.length?table('search_identity_'+vid,idc,[['時間','created_at'],['type','change_type'],['Twitch',r=>`${esc(r.old_twitch_login||r.old_twitch_user_id||'')} → ${esc(r.new_twitch_login||r.new_twitch_user_id||'')}`],['YouTube',r=>`${esc(r.old_youtube_handle||r.old_youtube_channel_id||'')} → ${esc(r.new_youtube_handle||r.new_youtube_channel_id||'')}`]]):''}
+   </div>`
+ }).join('');
+ return `<div class="card"><h2>Viewer Search</h2><p class="muted">${matches.length} result(s)</p></div>${cards}`;
+}
 function render(d){
  if(!d){root.innerHTML='<p class="muted">未有 admin snapshot。</p>';return}
  const h=d.health||{}, failed=d.failed||{};
@@ -49,6 +75,7 @@ function render(d){
   <div class="card"><h2>System Health</h2><p>Generated: <span class="mono">${esc(d.generated_at)}</span></p><p>Sync: <span class="${h.sync_active?'ok':'bad'}">${h.sync_active?'active':'not active'}</span></p><p>Peanut service: <span class="${h.peanut_service_active?'ok':'bad'}">${h.peanut_service_active?'active':'not active'}</span></p><p>Windows DB: <span class="${h.windows_leaderboard_ok?'ok':'bad'}">${h.windows_leaderboard_ok?'OK':'error'}</span></p><p class="muted small">${esc(h.windows_leaderboard_message||'')}</p></div>
   <div class="card"><h2>Needs Attention</h2><p>Failed S57: <b class="${failed.s57?.length?'bad':'ok'}">${failed.s57?.length||0}</b></p><p>Failed PTS: <b class="${failed.points?.length?'bad':'ok'}">${failed.points?.length||0}</b></p><p>Discord errors: <b class="${failed.discord?.length?'bad':'ok'}">${failed.discord?.length||0}</b></p></div>
  </div>
+ ${viewerSearchHtml(d)}
  <div class="card"><h2>S57 Redeem Status</h2><p class="muted">可直接喺表格入面 scroll。</p>${table('s57', d.s57_redeems||[], [['時間','created_at'],['viewer',r=>`${userLabel(r)}<br><span class="muted">viewer_id ${esc(r.viewer_id)}</span>`,'viewer_label'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`,'status'],['扣分',r=>`${esc(r.before_points)} → ${esc(r.after_points)}`,'after_points'],['key','leaderboard_key'],['message','message']])}</div>
  <div class="card"><h2>PTS Channel Point Redeems</h2>${table('points', d.points_redeems||[], [['時間','created_at'],['user',r=>`${userLabel(r)}<br><span class="muted">${esc(r.platform_user_id)}</span>`,'platform_login'],['PTS',r=>`${esc(r.before_points)} → ${esc(r.after_points)}`,'after_points'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`,'status'],['event','source_event_id']])}</div>
  <div class="card"><h2>Discord Sync</h2>${table('discord', d.discord_sync||[], [['時間','created_at'],['viewer','viewer_id'],['season','season_number'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`,'status'],['message','message']])}</div>
@@ -65,5 +92,8 @@ root.addEventListener('click', e=>{
  sortState[id]={idx,dir:(cur.idx===idx&&cur.dir==='asc')?'desc':'asc'};
  if(currentData) render(currentData);
 });
-refresh.onclick=load;load();
+refresh.onclick=load;
+searchBtn.onclick=()=>{ if(currentData) render(currentData); };
+viewerSearch.addEventListener('keydown', e=>{ if(e.key==='Enter'&&currentData) render(currentData); });
+load();
 </script></body></html>
