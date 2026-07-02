@@ -67,12 +67,14 @@ function viewerSearchHtml(d){
  }).join('');
  return `<div class="card"><h2>Viewer Search</h2><p class="muted">${matches.length} result(s)</p></div>${cards}`;
 }
+function healthText(v){return v===true?'active':(v===false?'not active':'unknown')}
+function healthClass(v){return v===true?'ok':(v===false?'bad':'warn')}
 function render(d){
  if(!d){root.innerHTML='<p class="muted">未有 admin snapshot。</p>';return}
  const h=d.health||{}, failed=d.failed||{};
  root.innerHTML=`
  <div class="grid">
-  <div class="card"><h2>System Health</h2><p>Generated: <span class="mono">${esc(d.generated_at)}</span></p><p>Sync: <span class="${h.sync_active?'ok':'bad'}">${h.sync_active?'active':'not active'}</span></p><p>Peanut service: <span class="${h.peanut_service_active?'ok':'bad'}">${h.peanut_service_active?'active':'not active'}</span></p><p>Windows DB: <span class="${h.windows_leaderboard_ok?'ok':'bad'}">${h.windows_leaderboard_ok?'OK':'error'}</span></p><p class="muted small">${esc(h.windows_leaderboard_message||'')}</p></div>
+  <div class="card"><h2>System Health</h2><p>Generated: <span class="mono">${esc(d.generated_at)}</span></p><p>Sync: <span class="${h.sync_active?'ok':'bad'}">${h.sync_active?'active':'not active'}</span></p><p>Peanut service: <span class="${healthClass(h.peanut_service_active)}">${healthText(h.peanut_service_active)}</span></p><p class="muted small">${esc(h.peanut_service_message||'')}</p><p>Windows DB: <span class="${h.windows_leaderboard_ok?'ok':'bad'}">${h.windows_leaderboard_ok?'OK':'error'}</span></p><p class="muted small">${esc(h.windows_leaderboard_message||'')}</p></div>
   <div class="card"><h2>Needs Attention</h2><p>Failed S57: <b class="${failed.s57?.length?'bad':'ok'}">${failed.s57?.length||0}</b></p><p>Failed PTS: <b class="${failed.points?.length?'bad':'ok'}">${failed.points?.length||0}</b></p><p>Discord errors: <b class="${failed.discord?.length?'bad':'ok'}">${failed.discord?.length||0}</b></p></div>
  </div>
  ${viewerSearchHtml(d)}
