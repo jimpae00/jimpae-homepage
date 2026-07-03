@@ -113,10 +113,12 @@
         if(!changes.length) return;
         if(!confirm(`Save ${changes.length} gear change(s) for ${platform}?`)) return;
         saveGear.disabled = true; saveGear.textContent = 'Queueing...';
+        const queuedIds = [];
         for (const ch of changes) {
           const res = await fetch(`${API}/profile/equip-gear`, {method:'POST', credentials:'include', headers:{'content-type':'application/json'}, body:JSON.stringify({platform, gear_set:ch.gear_set, gear_piece:ch.gear_piece})});
           const data = await res.json().catch(()=>({}));
           if(!res.ok || !data.ok){ alert(data.error || `Equip failed: HTTP ${res.status}`); saveGear.disabled=false; saveGear.textContent='Save gear changes'; return; }
+          if(data.id) queuedIds.push(Number(data.id));
         }
         for (const ch of changes) {
           const sel = document.querySelector(`.gear-slot-select[data-gear-set="${CSS.escape(ch.gear_set)}"]`);
@@ -124,9 +126,10 @@
         }
         await renderGearPreviewCanvas().catch(()=>{});
         const note = document.getElementById('gearPreviewNote');
-        if(note) note.textContent = 'Queued. Stream Avatars 應該幾秒內更新；你可以再改返原本 gear。';
-        saveGear.textContent='Queued';
+        if(note) note.textContent = 'Sent to Stream Avatars… waiting for verify.';
+        saveGear.textContent='Sent';
         saveGear.disabled = true;
+        pollGearApplyStatus(queuedIds).catch(()=>{});
         return;
       }
       const btn = e.target.closest('[data-unlink]');
@@ -278,6 +281,40 @@
 
     function pendingGearChanges(){
       return Array.from(document.querySelectorAll('.gear-slot-select')).map(sel => ({gear_set: sel.dataset.gearSet, gear_piece: sel.value, current: sel.dataset.current})).filter(x => String(x.gear_piece).toLowerCase() !== String(x.current || 'none').toLowerCase());
+    }
+
+
+    async function pollGearApplyStatus(ids, timeoutMs=120000){
+      const note = document.getElementById('gearPreviewNote');
+      const btn = document.getElementById('saveGearChanges');
+      const start = Date.now();
+      const wanted = new Set(ids.map(x => Number(x)).filter(Boolean));
+      if(!wanted.size) return;
+      while(Date.now() - start < timeoutMs){
+        await new Promise(r => setTimeout(r, 3000));
+        let data = null;
+        try{
+          const res = await fetch(`${API}/profile/me`, {credentials:'include', cache:'no-store'});
+          data = await res.json();
+          if(!res.ok || !data.ok) continue;
+        }catch(e){ continue; }
+        const rows = (data.gear_changes || []).filter(r => wanted.has(Number(r.id)));
+        const applied = rows.filter(r => r.status === 'applied').length;
+        const failed = rows.filter(r => r.status === 'failed');
+        if(failed.length){
+          if(note) note.innerHTML = `<span class="error">${failed.length} gear change failed；請 refresh 後再試。</span>`;
+          if(btn){ btn.textContent = 'Save gear changes'; btn.disabled = false; }
+          return;
+        }
+        if(rows.length && applied === wanted.size){
+          if(note) note.innerHTML = '<span class="ok">Applied. Stream Avatars 已套用。</span>';
+          if(btn){ btn.textContent = 'Applied'; btn.disabled = true; }
+          return;
+        }
+        if(note) note.textContent = `Sent to Stream Avatars… waiting for verify (${applied}/${wanted.size})`;
+      }
+      if(note) note.innerHTML = '<span class="warn">Sent, but verify 未回來。Stream Avatars 可能已套用；refresh 再確認。</span>';
+      if(btn){ btn.textContent = 'Save gear changes'; btn.disabled = false; }
     }
 
     function renderProfile(data){
