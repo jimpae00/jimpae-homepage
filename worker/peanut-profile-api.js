@@ -99,8 +99,8 @@ async function adminSync(request, env) {
 
   const viewerStmt = env.DB.prepare(`
     INSERT OR REPLACE INTO viewer_profiles_v2
-    (viewer_id, twitch_user_id, twitch_login, twitch_display_name, youtube_channel_id, youtube_handle, youtube_display_name, discord_user_id, discord_username, discord_linked, points, points_rank, points_platform, last_synced_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (viewer_id, twitch_user_id, twitch_login, twitch_display_name, youtube_channel_id, youtube_handle, youtube_display_name, discord_user_id, discord_username, discord_linked, points, points_rank, points_platform, avatar_render_url, last_synced_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const ownershipStmt = env.DB.prepare('INSERT OR REPLACE INTO peanut_ownerships_v2 (viewer_id, season_number, source_platform, created_at) VALUES (?, ?, ?, ?)');
 
@@ -109,7 +109,7 @@ async function adminSync(request, env) {
       Number(v.viewer_id), v.twitch_user_id || null, v.twitch_login || null, v.twitch_display_name || null,
       v.youtube_channel_id || null, v.youtube_handle || null, v.youtube_display_name || null,
       v.discord_user_id || null, v.discord_username || null, v.discord_linked ? 1 : 0,
-      v.points ?? null, v.points_rank ?? null, v.points_platform || null, syncedAt,
+      v.points ?? null, v.points_rank ?? null, v.points_platform || null, v.avatar_render_url || null, syncedAt,
     ));
     if (batch.length) await env.DB.batch(batch);
   }

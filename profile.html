@@ -133,11 +133,14 @@
       const pts = profile.points != null ? `${Number(profile.points).toLocaleString()} 占幣${profile.points_rank ? ` · #${profile.points_rank}` : ''}` : '未見到';
       const ownsS57Pre = (data.seasons || []).some(s => Number(s.season_number) === 57);
       const ptsHint = profile.points == null ? '<div class="muted" style="font-size:12px;margin-top:4px">排行榜未同步，或 Twitch/YouTube 名稱未 match。</div>' : (Number(profile.points || 0) < 1000 && !ownsS57Pre ? '<div class="muted" style="font-size:12px;margin-top:4px">占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。</div>' : '');
+      const avatarUrl = profile.avatar_render_url ? `https://jimpae.info${profile.avatar_render_url}` : '';
+      const avatarHtml = avatarUrl ? `<div class="stat"><strong>Stream Avatar</strong><span class="stat-value"><img src="${escapeHtml(avatarUrl)}" alt="Stream Avatar" style="width:96px;height:96px;image-rendering:pixelated;border-radius:12px;background:#061016;border:1px solid #24444d"></span></div>` : '';
       const roleHint = profile.discord_linked
         ? '<div class="muted" style="font-size:12px;margin-top:4px">有花生證時會自動同步 Discord 身份組；可能有少少延遲。</div>'
         : '<div class="muted" style="font-size:12px;margin-top:4px">Connect Discord 後，有花生證會自動補身份組。</div>';
       const unlinkBtn = (platform, enabled) => enabled ? `<button class="unlink" data-unlink="${platform}">解除連結</button>` : '';
       $('accountBox').innerHTML = `
+        ${avatarHtml}
         <div class="stat"><strong>PTS</strong><span class="stat-value"><span>${escapeHtml(pts)}${ptsHint}</span></span></div>
         <div class="stat"><strong>Twitch</strong><span class="stat-value"><span>${escapeHtml(twitch ? '@'+twitch : '—')}</span>${unlinkBtn('twitch', !!profile.twitch_user_id)}</span></div>
         <div class="stat"><strong>YouTube</strong><span class="stat-value"><span>${escapeHtml(youtube || youtubeHandle || '—')}</span>${unlinkBtn('youtube', !!profile.youtube_channel_id)}</span></div>
