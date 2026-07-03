@@ -188,15 +188,21 @@
       const entry = window.profileGearEntry;
       const platform = window.currentGearPlatform || 'twitch';
       const gear = entry?.platforms?.[platform];
-      const base = gear?.preview?.base;
-      if(!base?.src) return;
-      const layers = currentSlotSelections().filter(x => x.layer && x.layer.src).map(x => x.layer);
-      const baseImg = await loadPreviewImage(base.src);
-      const neg = layers.filter(l => Number(l.z || 0) < 0).sort((a,b)=>Number(a.z||0)-Number(b.z||0));
-      const pos = layers.filter(l => Number(l.z || 0) >= 0).sort((a,b)=>Number(a.z||0)-Number(b.z||0));
-      for(const l of neg){ const img = await loadPreviewImage(l.src); if(img) ctx.drawImage(img, Number(base.x||0)+Number(l.ox||0), Number(base.y||0)+Number(l.oy||0)); }
-      if(baseImg) ctx.drawImage(baseImg, 0, 0);
-      for(const l of pos){ const img = await loadPreviewImage(l.src); if(img) ctx.drawImage(img, Number(base.x||0)+Number(l.ox||0), Number(base.y||0)+Number(l.oy||0)); }
+      const body = gear?.preview?.body || gear?.preview?.base;
+      if(!body?.src) return;
+      const selected = currentSlotSelections().filter(x => x.layer && x.layer.src).map(x => x.layer);
+      const neg = selected.filter(l => Number(l.z || 0) < 0).sort((a,b)=>Number(a.z||0)-Number(b.z||0));
+      const pos = selected.filter(l => Number(l.z || 0) >= 0).sort((a,b)=>Number(a.z||0)-Number(b.z||0));
+      async function drawLayer(l){
+        const img = await loadPreviewImage(l.src);
+        if(!img) return;
+        const left = Number(l.left ?? 0), top = Number(l.top ?? 0);
+        const width = Number(l.width ?? img.width), height = Number(l.height ?? img.height);
+        ctx.drawImage(img, 0, 0, img.width, img.height, left, top, width, height);
+      }
+      for(const l of neg) await drawLayer(l);
+      await drawLayer(body);
+      for(const l of pos) await drawLayer(l);
     }
 
     function gearPill(g, actionable=false){
@@ -251,6 +257,7 @@
       window.currentGearPlatform = platform;
       const gear = entry.platforms[platform];
       const current = (gear.current || []).map(g => gearPill(g, false)).join('') || '<span class="muted">無裝備</span>';
+      const previewCanvas = Number(gear.preview?.canvas || 180);
       const slots = gear.slots || [];
       const dropdowns = slots.map(slot => {
         const opts = (slot.options || []).map(o => `<option value="${escapeHtml(o.piece)}" data-layer="${escapeHtml(JSON.stringify(o.layer || null))}" ${String(o.piece).toLowerCase()===String(slot.current).toLowerCase()?'selected':''}>${escapeHtml(o.label)}</option>`).join('');
@@ -263,7 +270,7 @@
         <h3>Stream Avatar Gear</h3>
         <p class="muted" style="font-size:12px;margin-top:-4px">Preview 可以試配；Save 會經 Stream Avatars Lua <code>user.setGear()</code> 套用，唔會喺 chat 打 <code>!change</code>。</p>
         <div style="display:grid;grid-template-columns:192px 1fr;gap:16px;align-items:start">
-          <div><canvas id="gearPreviewCanvas" width="96" height="96" style="width:192px;height:192px;image-rendering:pixelated;border-radius:16px;background:#061016;border:1px solid #24444d"></canvas><div id="gearPreviewNote" class="muted" style="margin-top:8px;font-size:12px">未有改動。</div></div>
+          <div><canvas id="gearPreviewCanvas" width="${previewCanvas}" height="${previewCanvas}" style="width:192px;height:192px;image-rendering:pixelated;border-radius:16px;background:#061016;border:1px solid #24444d"></canvas><div id="gearPreviewNote" class="muted" style="margin-top:8px;font-size:12px">未有改動。</div></div>
           <div><h4 style="margin:0 0 6px">Current equipped</h4><div>${current}</div><h4 style="margin:14px 0 6px">Change gear</h4><div id="gearSlots">${dropdowns}</div><button id="saveGearChanges" disabled style="margin-top:10px;border:1px solid #7dd3fc;background:#123040;color:#e8f6fb;border-radius:999px;padding:9px 14px;font-weight:900;cursor:pointer">Save gear changes</button></div>
         </div>`;
       renderGearPreviewCanvas().catch(()=>{});
