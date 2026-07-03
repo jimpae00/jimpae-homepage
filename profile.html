@@ -85,6 +85,14 @@
       location.reload();
     });
     document.addEventListener('click', async (e) => {
+      const avatarBtn = e.target.closest('.avatar-toggle');
+      if (avatarBtn) {
+        const img = document.getElementById('streamAvatarPreview');
+        if (img) img.src = avatarBtn.dataset.avatarSrc;
+        document.querySelectorAll('.avatar-toggle').forEach(b => { b.style.borderColor = '#24444d'; b.style.background = '#061016'; });
+        avatarBtn.style.borderColor = '#7dd3fc'; avatarBtn.style.background = '#123040';
+        return;
+      }
       const btn = e.target.closest('[data-unlink]');
       if(!btn) return;
       const platform = btn.dataset.unlink;
@@ -133,8 +141,13 @@
       const pts = profile.points != null ? `${Number(profile.points).toLocaleString()} 占幣${profile.points_rank ? ` · #${profile.points_rank}` : ''}` : '未見到';
       const ownsS57Pre = (data.seasons || []).some(s => Number(s.season_number) === 57);
       const ptsHint = profile.points == null ? '<div class="muted" style="font-size:12px;margin-top:4px">排行榜未同步，或 Twitch/YouTube 名稱未 match。</div>' : (Number(profile.points || 0) < 1000 && !ownsS57Pre ? '<div class="muted" style="font-size:12px;margin-top:4px">占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。</div>' : '');
-      const avatarUrl = profile.avatar_render_url ? `https://jimpae.info${profile.avatar_render_url}` : '';
-      const avatarHtml = avatarUrl ? `<div class="stat"><strong>Stream Avatar</strong><span class="stat-value"><img src="${escapeHtml(avatarUrl)}" alt="Stream Avatar" style="width:96px;height:96px;image-rendering:pixelated;border-radius:12px;background:#061016;border:1px solid #24444d"></span></div>` : '';
+      const avatarBase = `https://jimpae.info/assets/avatar-renders/viewer-${Number(profile.viewer_id)}`;
+      const avatarOptions = [];
+      if (profile.twitch_user_id) avatarOptions.push(['twitch', 'Twitch', `${avatarBase}-twitch.png`]);
+      if (profile.youtube_channel_id) avatarOptions.push(['youtube', 'YouTube', `${avatarBase}-youtube.png`]);
+      if (!avatarOptions.length && profile.avatar_render_url) avatarOptions.push(['default', 'Avatar', `https://jimpae.info${profile.avatar_render_url}`]);
+      const avatarButtons = avatarOptions.map((a, i) => `<button class="avatar-toggle" data-avatar-src="${escapeHtml(a[2])}" style="margin:0 6px 8px 0;padding:5px 9px;border-radius:999px;border:1px solid ${i===0?'#7dd3fc':'#24444d'};background:${i===0?'#123040':'#061016'};color:#e8f6fb">${escapeHtml(a[1])}</button>`).join('');
+      const avatarHtml = avatarOptions.length ? `<div class="stat"><strong>Stream Avatar</strong><span class="stat-value"><span>${avatarButtons}<br><img id="streamAvatarPreview" src="${escapeHtml(avatarOptions[0][2])}" alt="Stream Avatar" style="width:192px;height:192px;image-rendering:pixelated;border-radius:16px;background:#061016;border:1px solid #24444d;object-fit:contain"></span></span></div>` : '';
       const roleHint = profile.discord_linked
         ? '<div class="muted" style="font-size:12px;margin-top:4px">有花生證時會自動同步 Discord 身份組；可能有少少延遲。</div>'
         : '<div class="muted" style="font-size:12px;margin-top:4px">Connect Discord 後，有花生證會自動補身份組。</div>';
