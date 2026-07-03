@@ -37,6 +37,7 @@
       <article class="panel card">
         <h2>帳號狀態</h2>
         <div id="accountBox" class="loading">載入中...</div>
+        <div id="gearBox" class="loading" style="margin-top:18px"></div>
       </article>
       <article class="panel card">
         <h2>花生證 Seasons</h2>
@@ -91,6 +92,7 @@
         if (img) img.src = avatarBtn.dataset.avatarSrc;
         document.querySelectorAll('.avatar-toggle').forEach(b => { b.style.borderColor = '#24444d'; b.style.background = '#061016'; });
         avatarBtn.style.borderColor = '#7dd3fc'; avatarBtn.style.background = '#123040';
+        if (window.renderGearInventory) window.renderGearInventory(avatarBtn.dataset.avatarPlatform);
         return;
       }
       const btn = e.target.closest('[data-unlink]');
@@ -115,7 +117,36 @@
       $('testDeductBtn').classList.add('hidden');
       $('logoutBtn').classList.add('hidden');
       $('accountBox').innerHTML = `<p class="muted">${escapeHtml(message)}</p>`;
+      $('gearBox').innerHTML = '';
       $('seasonBox').innerHTML = '<p class="muted">登入後會顯示你擁有嘅花生證。</p>';
+    }
+
+    function gearPill(g){
+      return `<span title="${escapeHtml(g.set)}" style="display:inline-flex;gap:6px;align-items:center;margin:3px 4px 3px 0;padding:5px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:${g.equipped?'rgba(134,239,172,.12)':'rgba(255,255,255,.045)'};font-size:12px"><b>${escapeHtml(g.set_label)}</b>${escapeHtml(g.label)}${g.equipped?' ✓':''}</span>`;
+    }
+    function renderGearForPlatform(platform){
+      const box = $('gearBox');
+      const gear = (window.profileGear || {})[platform];
+      if(!gear){ box.innerHTML = '<h3>Stream Avatar Gear</h3><p class="muted">呢個平台未 match 到 Stream Avatars gear data。</p>'; return; }
+      const current = (gear.current || []).map(gearPill).join('') || '<span class="muted">無裝備</span>';
+      const owned = (gear.owned || []).map(gearPill).join('') || '<span class="muted">未見到 owned gear；只顯示目前裝備。</span>';
+      box.innerHTML = `<h3>Stream Avatar Gear <span class="muted" style="font-size:12px">${escapeHtml(platform)}</span></h3>
+        <p class="muted" style="font-size:12px;margin-top:-4px">Read-only：而家只顯示目前裝備同已擁有 gear，未開放更換。</p>
+        <div style="margin:10px 0"><b>Current equipped</b><div style="margin-top:6px">${current}</div></div>
+        <div style="margin:10px 0"><b>Owned gear</b> <span class="muted">(${Number(gear.owned_count||0)})</span><div style="margin-top:6px;max-height:180px;overflow:auto;padding-right:4px">${owned}</div></div>`;
+    }
+    async function loadGearInventory(profile, defaultPlatform){
+      $('gearBox').innerHTML = '<h3>Stream Avatar Gear</h3><p class="muted">載入 gear...</p>';
+      try{
+        const res = await fetch(`/assets/avatar-renders/gear-manifest.json?v=2`, {cache:'no-store'});
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        window.profileGear = (data.viewers || {})[String(profile.viewer_id)] || {};
+        window.renderGearInventory = renderGearForPlatform;
+        renderGearForPlatform(defaultPlatform || Object.keys(window.profileGear)[0] || 'twitch');
+      }catch(e){
+        $('gearBox').innerHTML = `<h3>Stream Avatar Gear</h3><p class="muted">Gear inventory 載入失敗：${escapeHtml(e.message)}</p>`;
+      }
     }
 
     function renderProfile(data){
@@ -146,7 +177,7 @@
       if (profile.twitch_user_id) avatarOptions.push(['twitch', 'Twitch', `${avatarBase}-twitch.png`]);
       if (profile.youtube_channel_id) avatarOptions.push(['youtube', 'YouTube', `${avatarBase}-youtube.png`]);
       if (!avatarOptions.length && profile.avatar_render_url) avatarOptions.push(['default', 'Avatar', `https://jimpae.info${profile.avatar_render_url}`]);
-      const avatarButtons = avatarOptions.map((a, i) => `<button class="avatar-toggle" data-avatar-src="${escapeHtml(a[2])}" style="margin:0 6px 8px 0;padding:5px 9px;border-radius:999px;border:1px solid ${i===0?'#7dd3fc':'#24444d'};background:${i===0?'#123040':'#061016'};color:#e8f6fb">${escapeHtml(a[1])}</button>`).join('');
+      const avatarButtons = avatarOptions.map((a, i) => `<button class="avatar-toggle" data-avatar-platform="${escapeHtml(a[0])}" data-avatar-src="${escapeHtml(a[2])}" style="margin:0 6px 8px 0;padding:5px 9px;border-radius:999px;border:1px solid ${i===0?'#7dd3fc':'#24444d'};background:${i===0?'#123040':'#061016'};color:#e8f6fb">${escapeHtml(a[1])}</button>`).join('');
       const avatarHtml = avatarOptions.length ? `<div class="stat"><strong>Stream Avatar</strong><span class="stat-value"><span>${avatarButtons}<br><img id="streamAvatarPreview" src="${escapeHtml(avatarOptions[0][2])}" alt="Stream Avatar" style="width:192px;height:192px;image-rendering:pixelated;border-radius:16px;background:#061016;border:1px solid #24444d;object-fit:contain"></span></span></div>` : '';
       const roleHint = profile.discord_linked
         ? '<div class="muted" style="font-size:12px;margin-top:4px">有花生證時會自動同步 Discord 身份組；可能有少少延遲。</div>'
@@ -160,6 +191,7 @@
         <div class="stat"><strong>Discord</strong><span class="stat-value"><span><span>${discord}</span>${roleHint}</span>${unlinkBtn('discord', !!profile.discord_user_id)}</span></div>
         <div class="stat"><strong>最後同步</strong><span>${escapeHtml(synced)}</span></div>
       `;
+      loadGearInventory(profile, avatarOptions[0]?.[0] || 'twitch');
       const seasons = data.seasons || [];
       $('seasonBox').innerHTML = seasons.length
         ? `<div class="pill-row">${seasons.map(s => `<span class="season">S${escapeHtml(s.season_number)}</span>`).join('')}</div>`
@@ -175,6 +207,7 @@
         renderProfile(data);
       }catch(e){
         $('accountBox').innerHTML = `<p class="error">Profile 載入失敗：${escapeHtml(e.message)}</p>`;
+        $('gearBox').innerHTML = '';
         $('seasonBox').innerHTML = '<p class="muted">請稍後再試。</p>';
       }
     }
