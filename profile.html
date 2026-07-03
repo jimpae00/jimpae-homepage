@@ -85,6 +85,15 @@
       await fetch(`${API}/profile/logout`, {method:'POST', credentials:'include'}).catch(()=>{});
       location.reload();
     });
+    document.addEventListener('change', (e) => {
+      if(!e.target.classList || !e.target.classList.contains('gear-slot-select')) return;
+      const changes = pendingGearChanges();
+      const btn = document.getElementById('saveGearChanges');
+      const note = document.getElementById('gearPreviewNote');
+      if(btn) btn.disabled = changes.length === 0;
+      if(note) note.textContent = changes.length ? `${changes.length} pending change(s). Preview render 未接；Save 後會套用並更新 avatar。` : '未有改動。';
+    });
+
     document.addEventListener('click', async (e) => {
       const avatarBtn = e.target.closest('.avatar-toggle');
       if (avatarBtn) {
@@ -95,17 +104,20 @@
         if (window.renderGearInventory) window.renderGearInventory(avatarBtn.dataset.avatarPlatform);
         return;
       }
-      const gearBtn = e.target.closest('.gear-equip');
-      if (gearBtn) {
+      const saveGear = e.target.closest('#saveGearChanges');
+      if (saveGear) {
+        const changes = pendingGearChanges();
         const platform = window.currentGearPlatform || 'twitch';
-        const gearSet = gearBtn.dataset.gearSet;
-        const gearPiece = gearBtn.dataset.gearPiece;
-        if(!confirm(`更換 ${platform} gear?\n${gearSet} / ${gearPiece}`)) return;
-        gearBtn.disabled = true; gearBtn.textContent = 'Queued';
-        const res = await fetch(`${API}/profile/equip-gear`, {method:'POST', credentials:'include', headers:{'content-type':'application/json'}, body:JSON.stringify({platform, gear_set:gearSet, gear_piece:gearPiece})});
-        const data = await res.json().catch(()=>({}));
-        if(!res.ok || !data.ok){ alert(data.error || `Equip failed: HTTP ${res.status}`); gearBtn.disabled=false; gearBtn.textContent='Equip'; return; }
-        alert('Gear change queued. 15–30 秒後 refresh 會更新。');
+        if(!changes.length) return;
+        if(!confirm(`Save ${changes.length} gear change(s) for ${platform}?`)) return;
+        saveGear.disabled = true; saveGear.textContent = 'Queueing...';
+        for (const ch of changes) {
+          const res = await fetch(`${API}/profile/equip-gear`, {method:'POST', credentials:'include', headers:{'content-type':'application/json'}, body:JSON.stringify({platform, gear_set:ch.gear_set, gear_piece:ch.gear_piece})});
+          const data = await res.json().catch(()=>({}));
+          if(!res.ok || !data.ok){ alert(data.error || `Equip failed: HTTP ${res.status}`); saveGear.disabled=false; saveGear.textContent='Save gear changes'; return; }
+        }
+        alert('Gear changes queued. 15–30 秒後 refresh 會更新。');
+        saveGear.textContent='Queued';
         return;
       }
       const btn = e.target.closest('[data-unlink]');
@@ -135,33 +147,55 @@
     }
 
     function gearPill(g, actionable=false){
-      const equip = actionable && !g.equipped ? `<button class="gear-equip" data-gear-set="${escapeHtml(g.set)}" data-gear-piece="${escapeHtml(g.piece)}" style="margin-left:6px;border:1px solid #7dd3fc;background:#123040;color:#e8f6fb;border-radius:999px;padding:3px 7px;font-size:11px;font-weight:900;cursor:pointer">Equip</button>` : '';
-      return `<span title="${escapeHtml(g.set)}" style="display:inline-flex;gap:6px;align-items:center;margin:3px 4px 3px 0;padding:5px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:${g.equipped?'rgba(134,239,172,.12)':'rgba(255,255,255,.045)'};font-size:12px"><b>${escapeHtml(g.set_label)}</b>${escapeHtml(g.label)}${g.equipped?' ✓':''}${equip}</span>`;
+      return `<span title="${escapeHtml(g.set)}" style="display:inline-flex;gap:6px;align-items:center;margin:3px 4px 3px 0;padding:5px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:${g.equipped?'rgba(134,239,172,.12)':'rgba(255,255,255,.045)'};font-size:12px"><b>${escapeHtml(g.set_label)}</b>${escapeHtml(g.label)}${g.equipped?' ✓':''}</span>`;
     }
-    function renderGearForPlatform(platform){
+
+    async function loadGearInventory(profile, initialPlatform){
       const box = $('gearBox');
-      const gear = (window.profileGear || {})[platform];
-      if(!gear){ box.innerHTML = '<h3>Stream Avatar Gear</h3><p class="muted">呢個平台未 match 到 Stream Avatars gear data。</p>'; return; }
-      window.currentGearPlatform = platform;
-      const current = (gear.current || []).map(g => gearPill(g, false)).join('') || '<span class="muted">無裝備</span>';
-      const owned = (gear.owned || []).map(g => gearPill(g, true)).join('') || '<span class="muted">未見到 owned gear；只顯示目前裝備。</span>';
-      box.innerHTML = `<h3>Stream Avatar Gear <span class="muted" style="font-size:12px">${escapeHtml(platform)}</span></h3>
-        <p class="muted" style="font-size:12px;margin-top:-4px">更換 gear 會先排隊；系統確認 ownership 後才會套用。</p>
-        <div style="margin:10px 0"><b>Current equipped</b><div style="margin-top:6px">${current}</div></div>
-        <div style="margin:10px 0"><b>Owned gear</b> <span class="muted">(${Number(gear.owned_count||0)})</span><div style="margin-top:6px;max-height:180px;overflow:auto;padding-right:4px">${owned}</div></div>`;
-    }
-    async function loadGearInventory(profile, defaultPlatform){
-      $('gearBox').innerHTML = '<h3>Stream Avatar Gear</h3><p class="muted">載入 gear...</p>';
+      box.innerHTML = '<p class="loading">載入 Stream Avatar gear...</p>';
       try{
-        const res = await fetch(`/assets/avatar-renders/gear-manifest.json?v=2`, {cache:'no-store'});
-        if(!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        window.profileGear = (data.viewers || {})[String(profile.viewer_id)] || {};
-        window.renderGearInventory = renderGearForPlatform;
-        renderGearForPlatform(defaultPlatform || Object.keys(window.profileGear)[0] || 'twitch');
+        const res = await fetch('/assets/avatar-renders/gear-manifest.json', {cache:'no-store'});
+        const manifest = await res.json();
+        const entry = (manifest.viewers || []).find(v => Number(v.viewer_id) === Number(profile.viewer_id));
+        window.profileGearEntry = entry || null;
+        window.renderGearInventory = renderGearInventory;
+        renderGearInventory(initialPlatform);
       }catch(e){
-        $('gearBox').innerHTML = `<h3>Stream Avatar Gear</h3><p class="muted">Gear inventory 載入失敗：${escapeHtml(e.message)}</p>`;
+        box.innerHTML = `<p class="muted">Stream Avatar gear 暫時載入唔到。</p>`;
       }
+    }
+
+    function renderGearInventory(platform){
+      const box = $('gearBox');
+      const entry = window.profileGearEntry;
+      if(!entry || !entry.platforms || !entry.platforms[platform]){
+        box.innerHTML = '<p class="muted">呢個平台暫時未有 Stream Avatar gear 資料。</p>';
+        return;
+      }
+      window.currentGearPlatform = platform;
+      const gear = entry.platforms[platform];
+      const current = (gear.current || []).map(g => gearPill(g, false)).join('') || '<span class="muted">無裝備</span>';
+      const slots = gear.slots || [];
+      const dropdowns = slots.map(slot => {
+        const opts = (slot.options || []).map(o => `<option value="${escapeHtml(o.piece)}" ${String(o.piece).toLowerCase()===String(slot.current).toLowerCase()?'selected':''}>${escapeHtml(o.label)}</option>`).join('');
+        return `<label style="display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center;margin:8px 0;font-size:13px">
+          <span style="font-weight:800;color:#cfe7ef">${escapeHtml(slot.set_label)}</span>
+          <select class="gear-slot-select" data-gear-set="${escapeHtml(slot.set)}" data-current="${escapeHtml(slot.current || 'none')}" style="background:#0f1820;color:#e8f6fb;border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:8px">${opts}</select>
+        </label>`;
+      }).join('') || '<p class="muted">未見到可更換 slot。</p>';
+      box.innerHTML = `
+        <h3>Stream Avatar Gear</h3>
+        <p class="muted" style="font-size:12px;margin-top:-4px">先用 dropdown 試配；按 Save 先會排隊套用。Preview render 下一步接。</p>
+        <h4 style="margin:10px 0 6px">Current equipped</h4>
+        <div>${current}</div>
+        <h4 style="margin:14px 0 6px">Change gear</h4>
+        <div id="gearSlots">${dropdowns}</div>
+        <div id="gearPreviewNote" class="muted" style="margin-top:8px;font-size:12px">未有改動。</div>
+        <button id="saveGearChanges" disabled style="margin-top:10px;border:1px solid #7dd3fc;background:#123040;color:#e8f6fb;border-radius:999px;padding:9px 14px;font-weight:900;cursor:pointer">Save gear changes</button>`;
+    }
+
+    function pendingGearChanges(){
+      return Array.from(document.querySelectorAll('.gear-slot-select')).map(sel => ({gear_set: sel.dataset.gearSet, gear_piece: sel.value, current: sel.dataset.current})).filter(x => String(x.gear_piece).toLowerCase() !== String(x.current || 'none').toLowerCase());
     }
 
     function renderProfile(data){
