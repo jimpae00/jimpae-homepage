@@ -353,7 +353,11 @@ async function profileMe(request, env) {
     if (profile) ownerships = await env.DB.prepare('SELECT season_number, source_platform, created_at FROM peanut_ownerships_v2 WHERE viewer_id=? ORDER BY season_number DESC').bind(profile.viewer_id).all();
   }
   const pendingDiscord = profile ? await env.DB.prepare("SELECT COUNT(*) AS count FROM pending_discord_links WHERE status='pending' AND (twitch_user_id=? OR youtube_channel_id=?)").bind(profile.twitch_user_id || '', profile.youtube_channel_id || '').first() : { count: 0 };
-  return json({ ok: true, session, profile: profile || null, discord_pending: Number(pendingDiscord?.count || 0) > 0, seasons: (ownerships.results || []).map(r => ({ season_number: r.season_number, source_platform: r.source_platform, created_at: r.created_at })) });
+  let gearChanges = { results: [] };
+  if (profile) {
+    gearChanges = await env.DB.prepare("SELECT id, platform, gear_set, gear_piece, status, created_at, applied_at FROM pending_avatar_gear_changes WHERE viewer_id=? AND status IN ('pending','applied') ORDER BY id DESC LIMIT 100").bind(profile.viewer_id).all();
+  }
+  return json({ ok: true, session, profile: profile || null, discord_pending: Number(pendingDiscord?.count || 0) > 0, seasons: (ownerships.results || []).map(r => ({ season_number: r.season_number, source_platform: r.source_platform, created_at: r.created_at })), gear_changes: gearChanges.results || [] });
 }
 
 async function getSession(request, env) {

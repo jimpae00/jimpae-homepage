@@ -118,8 +118,15 @@
           const data = await res.json().catch(()=>({}));
           if(!res.ok || !data.ok){ alert(data.error || `Equip failed: HTTP ${res.status}`); saveGear.disabled=false; saveGear.textContent='Save gear changes'; return; }
         }
-        alert('Gear changes queued. 15–30 秒後 refresh 會更新。');
+        for (const ch of changes) {
+          const sel = document.querySelector(`.gear-slot-select[data-gear-set="${CSS.escape(ch.gear_set)}"]`);
+          if(sel) sel.dataset.current = ch.gear_piece;
+        }
+        await renderGearPreviewCanvas().catch(()=>{});
+        const note = document.getElementById('gearPreviewNote');
+        if(note) note.textContent = 'Queued. Stream Avatars 應該幾秒內更新；你可以再改返原本 gear。';
         saveGear.textContent='Queued';
+        saveGear.disabled = true;
         return;
       }
       const btn = e.target.closest('[data-unlink]');
@@ -196,14 +203,37 @@
       return `<span title="${escapeHtml(g.set)}" style="display:inline-flex;gap:6px;align-items:center;margin:3px 4px 3px 0;padding:5px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:${g.equipped?'rgba(134,239,172,.12)':'rgba(255,255,255,.045)'};font-size:12px"><b>${escapeHtml(g.set_label)}</b>${escapeHtml(g.label)}${g.equipped?' ✓':''}</span>`;
     }
 
-    async function loadGearInventory(profile, initialPlatform){
+    function applyLatestGearChanges(entry, changes){
+      if(!entry || !entry.platforms || !Array.isArray(changes)) return entry;
+      const latest = new Map();
+      for(const ch of changes){
+        if(!['pending','applied'].includes(ch.status)) continue;
+        const key = `${ch.platform}|${ch.gear_set}`;
+        if(!latest.has(key)) latest.set(key, ch);
+      }
+      for(const [key, ch] of latest.entries()){
+        const gear = entry.platforms?.[ch.platform];
+        if(!gear) continue;
+        const slot = (gear.slots || []).find(s => s.set === ch.gear_set);
+        if(slot){
+          slot.current = ch.gear_piece;
+          for(const opt of (slot.options || [])) opt.equipped = String(opt.piece).toLowerCase() === String(ch.gear_piece).toLowerCase();
+        }
+        gear.current = (gear.current || []).filter(g => g.set !== ch.gear_set);
+        const opt = slot ? (slot.options || []).find(o => String(o.piece).toLowerCase() === String(ch.gear_piece).toLowerCase()) : null;
+        gear.current.push({set: ch.gear_set, set_label: slot?.set_label || ch.gear_set, piece: ch.gear_piece, label: opt?.label || ch.gear_piece, equipped: true});
+      }
+      return entry;
+    }
+
+    async function loadGearInventory(profile, initialPlatform, gearChanges=[]){
       const box = $('gearBox');
       box.innerHTML = '<p class="loading">載入 Stream Avatar gear...</p>';
       try{
         const res = await fetch('/assets/avatar-renders/gear-manifest.json', {cache:'no-store'});
         const manifest = await res.json();
         const entry = (manifest.viewers || []).find(v => Number(v.viewer_id) === Number(profile.viewer_id));
-        window.profileGearEntry = entry || null;
+        window.profileGearEntry = applyLatestGearChanges(entry || null, gearChanges);
         window.renderGearInventory = renderGearInventory;
         renderGearInventory(initialPlatform);
       }catch(e){
@@ -285,7 +315,7 @@
         <div class="stat"><strong>Discord</strong><span class="stat-value"><span><span>${discord}</span>${roleHint}</span>${unlinkBtn('discord', !!profile.discord_user_id)}</span></div>
         <div class="stat"><strong>最後同步</strong><span>${escapeHtml(synced)}</span></div>
       `;
-      loadGearInventory(profile, avatarOptions[0]?.[0] || 'twitch');
+      loadGearInventory(profile, avatarOptions[0]?.[0] || 'twitch', data.gear_changes || []);
       const seasons = data.seasons || [];
       $('seasonBox').innerHTML = seasons.length
         ? `<div class="pill-row">${seasons.map(s => `<span class="season">S${escapeHtml(s.season_number)}</span>`).join('')}</div>`
