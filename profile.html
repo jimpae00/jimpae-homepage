@@ -90,8 +90,9 @@
       const changes = pendingGearChanges();
       const btn = document.getElementById('saveGearChanges');
       const note = document.getElementById('gearPreviewNote');
-      if(btn) { btn.disabled = true; btn.textContent = 'Gear save paused'; }
-      if(note) note.innerHTML = '<span class="error">Gear save 暫停：目前 Stream Avatars bridge 會喺 chat 顯示 !change command，等真正 non-chat hook 先再開。</span>';
+      if(btn) btn.disabled = changes.length === 0;
+      if(btn) btn.textContent = 'Save gear changes';
+      if(note) note.textContent = changes.length ? `${changes.length} pending change(s). Preview 已更新；按 Save 會用 Stream Avatars Lua setGear() 套用，唔會喺 chat 打 !change。` : '未有改動。';
       renderGearPreviewCanvas().catch(()=>{});
     });
 
@@ -107,7 +108,18 @@
       }
       const saveGear = e.target.closest('#saveGearChanges');
       if (saveGear) {
-        alert('Gear save 暫停：目前 Stream Avatars bridge 會喺 chat 顯示 !change command。等真正 non-chat hook/API 先再開。');
+        const changes = pendingGearChanges();
+        const platform = window.currentGearPlatform || 'twitch';
+        if(!changes.length) return;
+        if(!confirm(`Save ${changes.length} gear change(s) for ${platform}?`)) return;
+        saveGear.disabled = true; saveGear.textContent = 'Queueing...';
+        for (const ch of changes) {
+          const res = await fetch(`${API}/profile/equip-gear`, {method:'POST', credentials:'include', headers:{'content-type':'application/json'}, body:JSON.stringify({platform, gear_set:ch.gear_set, gear_piece:ch.gear_piece})});
+          const data = await res.json().catch(()=>({}));
+          if(!res.ok || !data.ok){ alert(data.error || `Equip failed: HTTP ${res.status}`); saveGear.disabled=false; saveGear.textContent='Save gear changes'; return; }
+        }
+        alert('Gear changes queued. 15–30 秒後 refresh 會更新。');
+        saveGear.textContent='Queued';
         return;
       }
       const btn = e.target.closest('[data-unlink]');
@@ -219,10 +231,10 @@
       }).join('') || '<p class="muted">未見到可更換 slot。</p>';
       box.innerHTML = `
         <h3>Stream Avatar Gear</h3>
-        <p class="muted" style="font-size:12px;margin-top:-4px">Preview 可以試配；正式 Save 暫停，因為現有 Stream Avatars hook 會喺 chat 顯示 !change command。</p>
+        <p class="muted" style="font-size:12px;margin-top:-4px">Preview 可以試配；Save 會經 Stream Avatars Lua <code>user.setGear()</code> 套用，唔會喺 chat 打 <code>!change</code>。</p>
         <div style="display:grid;grid-template-columns:192px 1fr;gap:16px;align-items:start">
           <div><canvas id="gearPreviewCanvas" width="96" height="96" style="width:192px;height:192px;image-rendering:pixelated;border-radius:16px;background:#061016;border:1px solid #24444d"></canvas><div id="gearPreviewNote" class="muted" style="margin-top:8px;font-size:12px">未有改動。</div></div>
-          <div><h4 style="margin:0 0 6px">Current equipped</h4><div>${current}</div><h4 style="margin:14px 0 6px">Change gear</h4><div id="gearSlots">${dropdowns}</div><button id="saveGearChanges" disabled style="margin-top:10px;border:1px solid #7dd3fc;background:#123040;color:#e8f6fb;border-radius:999px;padding:9px 14px;font-weight:900;cursor:not-allowed;opacity:.7">Gear save paused</button></div>
+          <div><h4 style="margin:0 0 6px">Current equipped</h4><div>${current}</div><h4 style="margin:14px 0 6px">Change gear</h4><div id="gearSlots">${dropdowns}</div><button id="saveGearChanges" disabled style="margin-top:10px;border:1px solid #7dd3fc;background:#123040;color:#e8f6fb;border-radius:999px;padding:9px 14px;font-weight:900;cursor:pointer">Save gear changes</button></div>
         </div>`;
       renderGearPreviewCanvas().catch(()=>{});
     }
