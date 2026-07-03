@@ -126,7 +126,7 @@
         }
         await renderGearPreviewCanvas().catch(()=>{});
         const note = document.getElementById('gearPreviewNote');
-        if(note) note.textContent = 'Sent to Stream Avatars… waiting for verify.';
+        if(note) note.textContent = 'Sent to Stream Avatars… waiting for verify. SA export 可能要 1–3 分鐘。';
         saveGear.textContent='Sent';
         saveGear.disabled = true;
         pollGearApplyStatus(queuedIds).catch(()=>{});
@@ -284,7 +284,7 @@
     }
 
 
-    async function pollGearApplyStatus(ids, timeoutMs=120000){
+    async function pollGearApplyStatus(ids, timeoutMs=240000){
       const note = document.getElementById('gearPreviewNote');
       const btn = document.getElementById('saveGearChanges');
       const start = Date.now();
@@ -313,7 +313,7 @@
         }
         if(note) note.textContent = `Sent to Stream Avatars… waiting for verify (${applied}/${wanted.size})`;
       }
-      if(note) note.innerHTML = '<span class="warn">Sent, but verify 未回來。Stream Avatars 可能已套用；refresh 再確認。</span>';
+      if(note) note.innerHTML = '<span class="warn">Sent, but verify 未回來。Stream Avatars 可能已套用；SA export 有時要幾分鐘，refresh 再確認。</span>';
       if(btn){ btn.textContent = 'Save gear changes'; btn.disabled = false; }
     }
 
