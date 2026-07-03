@@ -297,6 +297,8 @@ async function profileEquipGear(request, env) {
   const existing = await env.DB.prepare("SELECT id FROM pending_avatar_gear_changes WHERE viewer_id=? AND platform=? AND gear_set=? AND gear_piece=? AND status='pending' LIMIT 1")
     .bind(Number(profile.viewer_id), platform, gearSet, gearPiece).first();
   if (existing) return json({ ok: true, status: 'pending', id: existing.id });
+  await env.DB.prepare("UPDATE pending_avatar_gear_changes SET status='failed', message='superseded by newer request for same slot', applied_at=? WHERE viewer_id=? AND platform=? AND gear_set=? AND status='pending'")
+    .bind(new Date().toISOString(), Number(profile.viewer_id), platform, gearSet).run();
   const res = await env.DB.prepare(`
     INSERT INTO pending_avatar_gear_changes
     (viewer_id, platform, gear_set, gear_piece, session_provider, session_subject, status, created_at)
