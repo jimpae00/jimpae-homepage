@@ -13,7 +13,7 @@
       "layers": [
         "jp_emotes:goblin_jimpae_crown",
         "jp_weapons_l:mcpickaxe",
-        "jp_cape:diana",
+        "jp_cape:rifle",
         "jp_boots:legging_heel",
         "jp_pants:goblin_pants_black",
         "jp_clothes:robloxhoodie",
@@ -38,7 +38,7 @@
       "layers": [
         "jp_emotes:goblin_jimpae_crown",
         "jp_weapons_l:mcpickaxe",
-        "jp_cape:diana",
+        "jp_cape:rifle",
         "jp_boots:legging_heel",
         "jp_pants:goblin_pants_black",
         "jp_clothes:robloxhoodie",
@@ -7044,6 +7044,38 @@
       "render_url": "/assets/avatar-renders/viewer-545-youtube.png",
       "platform": "youtube",
       "layers": [],
+      "skipped": []
+    },
+    {
+      "ok": true,
+      "viewer_id": 546,
+      "sa_key": "412624506",
+      "match_method": "twitch_id",
+      "avatar_id": "goblin",
+      "color_id": "red",
+      "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-546.png",
+      "render_url": "/assets/avatar-renders/viewer-546.png",
+      "platform": "default",
+      "layers": [
+        "jp_ears:goblin_ears",
+        "jp_clothes:robloxhoodie"
+      ],
+      "skipped": []
+    },
+    {
+      "ok": true,
+      "viewer_id": 546,
+      "sa_key": "412624506",
+      "match_method": "twitch_id",
+      "avatar_id": "goblin",
+      "color_id": "red",
+      "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-546-twitch.png",
+      "render_url": "/assets/avatar-renders/viewer-546-twitch.png",
+      "platform": "twitch",
+      "layers": [
+        "jp_ears:goblin_ears",
+        "jp_clothes:robloxhoodie"
+      ],
       "skipped": []
     }
   ]
