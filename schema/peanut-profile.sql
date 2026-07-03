@@ -136,3 +136,21 @@ CREATE TABLE IF NOT EXISTS admin_status_snapshots (
   payload TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+
+
+CREATE TABLE IF NOT EXISTS pending_avatar_gear_changes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  viewer_id INTEGER NOT NULL,
+  platform TEXT NOT NULL,
+  gear_set TEXT NOT NULL,
+  gear_piece TEXT NOT NULL,
+  session_provider TEXT,
+  session_subject TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  message TEXT,
+  created_at TEXT NOT NULL,
+  applied_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_pending_avatar_gear_changes_status
+ON pending_avatar_gear_changes(status, id);

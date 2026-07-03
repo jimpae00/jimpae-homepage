@@ -29,6 +29,8 @@ export default {
       if (url.pathname === '/admin/pending-test-deductions/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_test_deductions');
       if (url.pathname === '/admin/pending-peanut-redeems' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_peanut_redeems');
       if (url.pathname === '/admin/pending-peanut-redeems/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_peanut_redeems');
+      if (url.pathname === '/admin/pending-avatar-gear-changes' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_avatar_gear_changes');
+      if (url.pathname === '/admin/pending-avatar-gear-changes/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_avatar_gear_changes');
 
       if (url.pathname === '/profile/twitch/login' && request.method === 'GET') return await twitchLogin(request, url, env);
       if (url.pathname === '/profile/twitch/callback' && request.method === 'GET') return await twitchCallback(request, url, env);
@@ -40,6 +42,7 @@ export default {
       if (url.pathname === '/profile/unlink' && request.method === 'POST') return await profileUnlink(request, env);
       if (url.pathname === '/profile/test-deduct' && request.method === 'POST') return await profileTestDeduct(request, env);
       if (url.pathname === '/profile/redeem-s57' && request.method === 'POST') return await profileRedeemS57(request, env);
+      if (url.pathname === '/profile/equip-gear' && request.method === 'POST') return await profileEquipGear(request, env);
       if (url.pathname === '/profile/logout' && request.method === 'POST') return cors(new Response(JSON.stringify({ ok: true }), { headers: { ...JSON_HEADERS, 'set-cookie': sessionCookie('', 0) } }), request);
       return json({ ok: false, error: 'not found' }, 404);
     } catch (err) {
@@ -274,6 +277,32 @@ async function profileRedeemS57(request, env) {
     VALUES (?, 57, 1000, ?, ?, 'pending', ?)
   `).bind(Number(profile.viewer_id), session.provider || null, value || null, new Date().toISOString()).run();
   return json({ ok: true, status: 'pending', id: res?.meta?.last_row_id || null, season_number: 57, cost: 1000 });
+}
+
+async function profileEquipGear(request, env) {
+  const session = await getSession(request, env);
+  if (!session) return json({ ok: false, error: 'not logged in' }, 401);
+  const { where, value } = identityWhere(session);
+  if (!where) return json({ ok: false, error: 'no identity' }, 401);
+  const profile = await env.DB.prepare(`SELECT * FROM viewer_profiles_v2 WHERE ${where}=?`).bind(value).first();
+  if (!profile) return json({ ok: false, error: 'profile not found' }, 404);
+  const body = await request.json().catch(() => ({}));
+  const platform = String(body.platform || '').toLowerCase();
+  const gearSet = String(body.gear_set || '').trim();
+  const gearPiece = String(body.gear_piece || '').trim();
+  if (!['twitch', 'youtube'].includes(platform)) return json({ ok: false, error: 'invalid platform' }, 400);
+  if (!gearSet || !gearPiece || gearSet.length > 80 || gearPiece.length > 120) return json({ ok: false, error: 'invalid gear' }, 400);
+  if (platform === 'twitch' && !profile.twitch_user_id) return json({ ok: false, error: 'Twitch 未連結' }, 400);
+  if (platform === 'youtube' && !profile.youtube_channel_id) return json({ ok: false, error: 'YouTube 未連結' }, 400);
+  const existing = await env.DB.prepare("SELECT id FROM pending_avatar_gear_changes WHERE viewer_id=? AND platform=? AND gear_set=? AND gear_piece=? AND status='pending' LIMIT 1")
+    .bind(Number(profile.viewer_id), platform, gearSet, gearPiece).first();
+  if (existing) return json({ ok: true, status: 'pending', id: existing.id });
+  const res = await env.DB.prepare(`
+    INSERT INTO pending_avatar_gear_changes
+    (viewer_id, platform, gear_set, gear_piece, session_provider, session_subject, status, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)
+  `).bind(Number(profile.viewer_id), platform, gearSet, gearPiece, session.provider || null, value || null, new Date().toISOString()).run();
+  return json({ ok: true, status: 'pending', id: res?.meta?.last_row_id || null, platform, gear_set: gearSet, gear_piece: gearPiece });
 }
 
 async function profileTestDeduct(request, env) {

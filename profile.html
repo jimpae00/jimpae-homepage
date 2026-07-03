@@ -95,6 +95,19 @@
         if (window.renderGearInventory) window.renderGearInventory(avatarBtn.dataset.avatarPlatform);
         return;
       }
+      const gearBtn = e.target.closest('.gear-equip');
+      if (gearBtn) {
+        const platform = window.currentGearPlatform || 'twitch';
+        const gearSet = gearBtn.dataset.gearSet;
+        const gearPiece = gearBtn.dataset.gearPiece;
+        if(!confirm(`更換 ${platform} gear?\n${gearSet} / ${gearPiece}`)) return;
+        gearBtn.disabled = true; gearBtn.textContent = 'Queued';
+        const res = await fetch(`${API}/profile/equip-gear`, {method:'POST', credentials:'include', headers:{'content-type':'application/json'}, body:JSON.stringify({platform, gear_set:gearSet, gear_piece:gearPiece})});
+        const data = await res.json().catch(()=>({}));
+        if(!res.ok || !data.ok){ alert(data.error || `Equip failed: HTTP ${res.status}`); gearBtn.disabled=false; gearBtn.textContent='Equip'; return; }
+        alert('Gear change queued. 15–30 秒後 refresh 會更新。');
+        return;
+      }
       const btn = e.target.closest('[data-unlink]');
       if(!btn) return;
       const platform = btn.dataset.unlink;
@@ -121,17 +134,19 @@
       $('seasonBox').innerHTML = '<p class="muted">登入後會顯示你擁有嘅花生證。</p>';
     }
 
-    function gearPill(g){
-      return `<span title="${escapeHtml(g.set)}" style="display:inline-flex;gap:6px;align-items:center;margin:3px 4px 3px 0;padding:5px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:${g.equipped?'rgba(134,239,172,.12)':'rgba(255,255,255,.045)'};font-size:12px"><b>${escapeHtml(g.set_label)}</b>${escapeHtml(g.label)}${g.equipped?' ✓':''}</span>`;
+    function gearPill(g, actionable=false){
+      const equip = actionable && !g.equipped ? `<button class="gear-equip" data-gear-set="${escapeHtml(g.set)}" data-gear-piece="${escapeHtml(g.piece)}" style="margin-left:6px;border:1px solid #7dd3fc;background:#123040;color:#e8f6fb;border-radius:999px;padding:3px 7px;font-size:11px;font-weight:900;cursor:pointer">Equip</button>` : '';
+      return `<span title="${escapeHtml(g.set)}" style="display:inline-flex;gap:6px;align-items:center;margin:3px 4px 3px 0;padding:5px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:${g.equipped?'rgba(134,239,172,.12)':'rgba(255,255,255,.045)'};font-size:12px"><b>${escapeHtml(g.set_label)}</b>${escapeHtml(g.label)}${g.equipped?' ✓':''}${equip}</span>`;
     }
     function renderGearForPlatform(platform){
       const box = $('gearBox');
       const gear = (window.profileGear || {})[platform];
       if(!gear){ box.innerHTML = '<h3>Stream Avatar Gear</h3><p class="muted">呢個平台未 match 到 Stream Avatars gear data。</p>'; return; }
-      const current = (gear.current || []).map(gearPill).join('') || '<span class="muted">無裝備</span>';
-      const owned = (gear.owned || []).map(gearPill).join('') || '<span class="muted">未見到 owned gear；只顯示目前裝備。</span>';
+      window.currentGearPlatform = platform;
+      const current = (gear.current || []).map(g => gearPill(g, false)).join('') || '<span class="muted">無裝備</span>';
+      const owned = (gear.owned || []).map(g => gearPill(g, true)).join('') || '<span class="muted">未見到 owned gear；只顯示目前裝備。</span>';
       box.innerHTML = `<h3>Stream Avatar Gear <span class="muted" style="font-size:12px">${escapeHtml(platform)}</span></h3>
-        <p class="muted" style="font-size:12px;margin-top:-4px">Read-only：而家只顯示目前裝備同已擁有 gear，未開放更換。</p>
+        <p class="muted" style="font-size:12px;margin-top:-4px">更換 gear 會先排隊；系統確認 ownership 後才會套用。</p>
         <div style="margin:10px 0"><b>Current equipped</b><div style="margin-top:6px">${current}</div></div>
         <div style="margin:10px 0"><b>Owned gear</b> <span class="muted">(${Number(gear.owned_count||0)})</span><div style="margin-top:6px;max-height:180px;overflow:auto;padding-right:4px">${owned}</div></div>`;
     }
