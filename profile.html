@@ -115,9 +115,9 @@
         saveGear.disabled = true; saveGear.textContent = 'Queueing...';
         const queuedIds = [];
         for (const ch of changes) {
-          const res = await fetch(`${API}/profile/equip-gear`, {method:'POST', credentials:'include', headers:{'content-type':'application/json'}, body:JSON.stringify({platform, gear_set:ch.gear_set, gear_piece:ch.gear_piece})});
-          const data = await res.json().catch(()=>({}));
-          if(!res.ok || !data.ok){ alert(data.error || `Equip failed: HTTP ${res.status}`); saveGear.disabled=false; saveGear.textContent='Save gear changes'; return; }
+          let data;
+          try { data = await queueGearChangeWithRetry(platform, ch); }
+          catch(e) { alert(`Equip queue failed: ${e.message}. If gear changes anyway, refresh in 1–2 minutes.`); saveGear.disabled=false; saveGear.textContent='Save gear changes'; return; }
           if(data.id) queuedIds.push(Number(data.id));
         }
         for (const ch of changes) {
@@ -281,6 +281,30 @@
 
     function pendingGearChanges(){
       return Array.from(document.querySelectorAll('.gear-slot-select')).map(sel => ({gear_set: sel.dataset.gearSet, gear_piece: sel.value, current: sel.dataset.current})).filter(x => String(x.gear_piece).toLowerCase() !== String(x.current || 'none').toLowerCase());
+    }
+
+
+    function isTransientD1Error(data, status){
+      const msg = String(data?.error || data?.message || '');
+      return status >= 500 || msg.includes('D1_ERROR') || msg.includes('storage operation exceeded timeout') || msg.includes('object to be reset');
+    }
+
+    async function queueGearChangeWithRetry(platform, ch, attempts=3){
+      let last = null;
+      for(let i=0; i<attempts; i++){
+        try{
+          const res = await fetch(`${API}/profile/equip-gear`, {method:'POST', credentials:'include', headers:{'content-type':'application/json'}, body:JSON.stringify({platform, gear_set:ch.gear_set, gear_piece:ch.gear_piece})});
+          const data = await res.json().catch(()=>({}));
+          if(res.ok && data.ok) return data;
+          last = {status: res.status, data};
+          if(!isTransientD1Error(data, res.status)) break;
+        }catch(e){
+          last = {status: 0, data: {error: e.message || String(e)}};
+        }
+        await new Promise(r => setTimeout(r, 800 * (i + 1)));
+      }
+      const err = last?.data?.error || `HTTP ${last?.status || 'network'}`;
+      throw new Error(err);
     }
 
 
