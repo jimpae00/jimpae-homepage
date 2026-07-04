@@ -130,6 +130,21 @@ async function adminSync(request, env) {
 async function adminPendingLinks(request, env, table) {
   const auth = requireAdmin(request, env);
   if (!auth.ok) return auth.response;
+  if (table === 'pending_avatar_gear_changes') {
+    const rows = await env.DB.prepare(`
+      SELECT p.*
+      FROM pending_avatar_gear_changes p
+      JOIN (
+        SELECT viewer_id, platform, gear_set, MAX(id) AS id
+        FROM pending_avatar_gear_changes
+        WHERE status='pending'
+        GROUP BY viewer_id, platform, gear_set
+      ) latest ON latest.id = p.id
+      ORDER BY p.id DESC
+      LIMIT 100
+    `).all();
+    return json({ ok: true, links: rows.results || [] });
+  }
   const rows = await env.DB.prepare(`SELECT * FROM ${table} WHERE status='pending' ORDER BY id LIMIT 100`).all();
   return json({ ok: true, links: rows.results || [] });
 }
