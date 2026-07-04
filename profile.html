@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Jimpae Profile｜花生證</title>
-  <meta name="description" content="登入 Twitch 或 YouTube 查看你嘅 Jimpae 花生證 profile。" />
+  <title>Jimpae 花生證｜個人頁</title>
+  <meta name="description" content="登入 Twitch 或 YouTube 查看你嘅 Jimpae 花生證個人頁。" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..900;1,9..40,400..900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root{--background:#071017;--foreground:#f2fbff;--muted:#91a9b7;--border:rgba(255,255,255,.10);--primary:#6ed6ff;--primary-2:#a7f3ff;--on-primary:#031018;--good:#86efac;--warn:#ffd166;--shadow:0 24px 80px rgba(0,0,0,.45)}
@@ -17,43 +17,43 @@
 <body>
   <main class="shell">
     <nav class="nav">
-      <div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M5 16.5 12 4l7 12.5-7-3.2-7 3.2Z" fill="currentColor"/><path d="M8 18.5h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><span>Jimpae Profile</span></div>
-      <a href="/">← 返回 Homepage</a>
+      <div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M5 16.5 12 4l7 12.5-7-3.2-7 3.2Z" fill="currentColor"/><path d="M8 18.5h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><span>Jimpae 花生證</span></div>
+      <a href="/">← 返回首頁</a>
     </nav>
 
     <section class="panel hero">
-      <div class="eyebrow">Peanut Pass Profile</div>
-      <h1>花生證 Profile</h1>
-      <p class="subtitle">用 Twitch 或 YouTube 登入，查看你擁有嘅花生證 season，同 Discord 連結狀態。資料由直播系統同步，可能有少少延遲。</p>
+      <div class="eyebrow">花生證</div>
+      <h1>花生證個人頁</h1>
+      <p class="subtitle">用 Twitch 或 YouTube 登入，查看你擁有嘅花生證 Season，同 Discord 連結狀態。資料由直播系統同步，可能有少少延遲。</p>
       <div class="actions" id="actions">
         <a class="btn btn-primary" id="loginBtn" href="#">登入 Twitch</a>
-        <a class="btn btn-primary hidden" id="discordBtn" href="#">Connect Discord</a>
+        <a class="btn btn-primary hidden" id="discordBtn" href="#">連結 Discord</a>
         <a class="btn btn-primary" id="youtubeBtn" href="#">登入 YouTube</a>
         <button class="btn btn-primary hidden" id="redeemS57Btn">兌換 S57 花生證（1000 占幣）</button>
         <button class="btn btn-ghost hidden" id="testDeductBtn">測試扣 100 占幣</button>
-        <button class="btn btn-ghost hidden" id="logoutBtn">Logout</button>
+        <button class="btn btn-ghost hidden" id="logoutBtn">登出</button>
       </div>
     </section>
 
-    <section class="profile-tabs" aria-label="Profile sections">
-      <div class="tabbar" role="tablist" aria-label="Profile tabs">
-        <button class="tab-btn active" type="button" role="tab" aria-selected="true" aria-controls="overviewTab" data-tab-target="overviewTab">Overview</button>
-        <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="gearTab" data-tab-target="gearTab">Stream Avatars gear</button>
-        <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="helpTab" data-tab-target="helpTab">Help</button>
+    <section class="profile-tabs" aria-label="個人頁分頁">
+      <div class="tabbar" role="tablist" aria-label="個人頁分頁">
+        <button class="tab-btn active" type="button" role="tab" aria-selected="true" aria-controls="overviewTab" data-tab-target="overviewTab">總覽</button>
+        <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="gearTab" data-tab-target="gearTab">直播角色裝備</button>
+        <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="helpTab" data-tab-target="helpTab">說明</button>
       </div>
 
-      <section id="overviewTab" class="tab-panel active" role="tabpanel" aria-label="Overview">
+      <section id="overviewTab" class="tab-panel active" role="tabpanel" aria-label="總覽">
         <div class="tab-grid">
           <article class="panel collapsible-card is-open" data-collapsible>
             <button class="collapse-head" type="button" aria-expanded="true">
-              <span class="collapse-title"><span class="section-kicker">Profile</span><strong>帳號狀態</strong></span>
+              <span class="collapse-title"><span class="section-kicker">個人資料</span><strong>帳號狀態</strong></span>
               <span class="chevron" aria-hidden="true">⌄</span>
             </button>
             <div class="collapse-body"><div id="accountBox" class="loading">載入中...</div></div>
           </article>
           <article class="panel collapsible-card is-open" data-collapsible>
             <button class="collapse-head" type="button" aria-expanded="true">
-              <span class="collapse-title"><span class="section-kicker">Peanut Pass</span><strong>花生證 Seasons</strong></span>
+              <span class="collapse-title"><span class="section-kicker">花生證</span><strong>擁有 Season</strong></span>
               <span class="chevron" aria-hidden="true">⌄</span>
             </button>
             <div class="collapse-body"><div id="seasonBox" class="loading">登入後顯示。</div></div>
@@ -61,35 +61,35 @@
         </div>
       </section>
 
-      <section id="gearTab" class="tab-panel" role="tabpanel" aria-label="Stream Avatars gear">
+      <section id="gearTab" class="tab-panel" role="tabpanel" aria-label="直播角色裝備">
         <article class="panel collapsible-card is-open" data-collapsible>
           <button class="collapse-head" type="button" aria-expanded="true">
-            <span class="collapse-title"><span class="section-kicker">Stream Avatars</span><strong>Gear change</strong></span>
+            <span class="collapse-title"><span class="section-kicker">直播角色</span><strong>更改裝備</strong></span>
             <span class="chevron" aria-hidden="true">⌄</span>
           </button>
           <div class="collapse-body">
             <div class="gear-tab-intro">
-              <p class="muted">Preview 可以試配；Save 會經 Stream Avatars Lua <code>user.setGear()</code> 套用，唔會喺 chat 打 <code>!change</code>。</p>
-              <span class="status-chip">Fast apply path</span>
+              <p class="muted">預覽可以試裝；儲存後請稍等，直播角色會自動更改裝備。</p>
+              <span class="status-chip">快速套用</span>
             </div>
-            <div id="gearBox" class="loading">載入 Stream Avatar gear...</div>
+            <div id="gearBox" class="loading">載入直播角色裝備...</div>
           </div>
         </article>
       </section>
 
-      <section id="helpTab" class="tab-panel" role="tabpanel" aria-label="Help">
+      <section id="helpTab" class="tab-panel" role="tabpanel" aria-label="說明">
         <article class="panel collapsible-card is-open" data-collapsible>
           <button class="collapse-head" type="button" aria-expanded="true">
-            <span class="collapse-title"><span class="section-kicker">Help</span><strong>點樣連 Discord？</strong></span>
+            <span class="collapse-title"><span class="section-kicker">說明</span><strong>點樣連 Discord？</strong></span>
             <span class="chevron" aria-hidden="true">⌄</span>
           </button>
           <div class="collapse-body">
-            <p class="help-copy">YouTube-only viewer 可以直接用 YouTube 登入。若 Discord 未連結，頁面上方會出現 <strong>Connect Discord</strong> 按鈕；按完授權 Discord 後，系統會自動合併你已有嘅花生證身份組。</p>
+            <p class="help-copy">只睇 YouTube 嘅觀眾可以直接用 YouTube 登入。若 Discord 未連結，頁面上方會出現 <strong>連結 Discord</strong> 按鈕；授權後，系統會自動合併你已有嘅花生證身份組。</p>
           </div>
         </article>
       </section>
     </section>
-    <p class="muted" style="margin:18px 6px 0"><a href="/privacy" style="color:var(--primary)">Privacy Policy</a> · <a href="/terms" style="color:var(--primary)">Terms of Service</a></p>
+    <p class="muted" style="margin:18px 6px 0"><a href="/privacy" style="color:var(--primary)">私隱政策</a> · <a href="/terms" style="color:var(--primary)">服務條款</a></p>
   </main>
 
   <script>
@@ -134,11 +134,11 @@
     $('testDeductBtn').addEventListener('click', async () => {
       if(!confirm('Jimpae test only：扣你 profile 100 占幣，並寫入 internal log。繼續？')) return;
       $('testDeductBtn').disabled = true;
-      $('testDeductBtn').textContent = 'Queued...';
+      $('testDeductBtn').textContent = '提交中...';
       const res = await fetch(`${API}/profile/test-deduct`, {method:'POST', credentials:'include'});
       const data = await res.json().catch(()=>({}));
-      if(!res.ok || !data.ok){ alert(data.error || `Test deduct failed: HTTP ${res.status}`); $('testDeductBtn').disabled=false; $('testDeductBtn').textContent='測試扣 100 占幣'; return; }
-      alert(`Test deduction queued: ${data.amount} 占幣。15–30 秒後 refresh / 查 log。`);
+      if(!res.ok || !data.ok){ alert(data.error || `測試扣分失敗：HTTP ${res.status}`); $('testDeductBtn').disabled=false; $('testDeductBtn').textContent='測試扣 100 占幣'; return; }
+      alert(`測試扣分已提交：${data.amount} 占幣。15–30 秒後 refresh / 查 log。`);
     });
 
     $('logoutBtn').addEventListener('click', async () => {
@@ -151,8 +151,8 @@
       const btn = document.getElementById('saveGearChanges');
       const note = document.getElementById('gearPreviewNote');
       if(btn) btn.disabled = changes.length === 0;
-      if(btn) btn.textContent = 'Save gear changes';
-      if(note) note.textContent = changes.length ? `${changes.length} pending change(s). Preview 已更新；按 Save 會用 Stream Avatars Lua setGear() 套用，唔會喺 chat 打 !change。` : '未有改動。';
+      if(btn) btn.textContent = '儲存裝備';
+      if(note) note.textContent = changes.length ? `${changes.length} 個未儲存改動。預覽已更新；儲存後請稍等，直播角色會自動更改裝備。` : '未有改動。';
       renderGearPreviewCanvas().catch(()=>{});
     });
 
@@ -175,13 +175,13 @@
         const changes = pendingGearChanges();
         const platform = window.currentGearPlatform || 'twitch';
         if(!changes.length) return;
-        if(!confirm(`Save ${changes.length} gear change(s) for ${platform}?`)) return;
-        saveGear.disabled = true; saveGear.textContent = 'Queueing...';
+        if(!confirm(`儲存 ${changes.length} 個裝備改動到 ${platform}？`)) return;
+        saveGear.disabled = true; saveGear.textContent = '提交中...';
         const queuedIds = [];
         for (const ch of changes) {
           let data;
           try { data = await queueGearChangeWithRetry(platform, ch); }
-          catch(e) { alert(`Equip queue failed: ${e.message}. If gear changes anyway, refresh in 1–2 minutes.`); saveGear.disabled=false; saveGear.textContent='Save gear changes'; return; }
+          catch(e) { alert(`裝備提交失敗：${e.message}。如果裝備稍後仍然有變，請 1–2 分鐘後 refresh。`); saveGear.disabled=false; saveGear.textContent='儲存裝備'; return; }
           if(data.id) queuedIds.push(Number(data.id));
         }
         for (const ch of changes) {
@@ -190,8 +190,8 @@
         }
         await renderGearPreviewCanvas().catch(()=>{});
         const note = document.getElementById('gearPreviewNote');
-        if(note) note.textContent = 'Sent to Stream Avatars… waiting for verify. SA export 可能要 1–3 分鐘。';
-        saveGear.textContent='Sent';
+        if(note) note.textContent = '已送出，等待直播角色系統確認。通常數秒內會更改，資料同步有時會較慢。';
+        saveGear.textContent='已送出';
         saveGear.disabled = true;
         pollGearApplyStatus(queuedIds).catch(()=>{});
         return;
@@ -204,8 +204,8 @@
       btn.textContent = '處理中';
       const res = await fetch(`${API}/profile/unlink`, {method:'POST', credentials:'include', headers:{'content-type':'application/json'}, body:JSON.stringify({platform})});
       const data = await res.json().catch(()=>({}));
-      if(!res.ok || !data.ok){ alert(data.error || `解除連結 failed: HTTP ${res.status}`); btn.disabled=false; btn.textContent='解除連結'; return; }
-      alert('解除連結 queued. 15–30 秒後 refresh 會更新。');
+      if(!res.ok || !data.ok){ alert(data.error || `解除連結失敗：HTTP ${res.status}`); btn.disabled=false; btn.textContent='解除連結'; return; }
+      alert('解除連結已提交。15–30 秒後 refresh 會更新。');
     });
 
     function renderLoggedOut(message='尚未登入 Twitch / YouTube。'){
@@ -301,7 +301,7 @@
 
     async function loadGearInventory(profile, initialPlatform, gearChanges=[]){
       const box = $('gearBox');
-      box.innerHTML = '<p class="loading">載入 Stream Avatar gear...</p>';
+      box.innerHTML = '<p class="loading">載入直播角色裝備...</p>';
       try{
         const res = await fetch('/assets/avatar-renders/gear-manifest.json', {cache:'no-store'});
         const manifest = await res.json();
@@ -312,6 +312,13 @@
       }catch(e){
         box.innerHTML = `<p class="muted">Stream Avatar gear 暫時載入唔到。</p>`;
       }
+    }
+
+    function slotDisplayLabel(label){
+      const map = {
+        'Back':'背部', 'Boots':'鞋', 'Cape':'披風', 'Clothes':'衣服', 'Ears':'耳朵', 'Emotes':'表情', 'Eyes':'眼睛', 'Hair':'頭髮', 'Pants':'褲', 'Pet':'寵物', 'Weapons L':'左手武器', 'Weapons R':'右手武器', 'Special':'特效'
+      };
+      return map[label] || label;
     }
 
     function renderGearInventory(platform){
@@ -329,15 +336,15 @@
       const dropdowns = slots.map(slot => {
         const opts = (slot.options || []).map(o => `<option value="${escapeHtml(o.piece)}" data-layer="${escapeHtml(JSON.stringify(o.layer || null))}" ${String(o.piece).toLowerCase()===String(slot.current).toLowerCase()?'selected':''}>${escapeHtml(o.label)}</option>`).join('');
         return `<label style="display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center;margin:8px 0;font-size:13px">
-          <span style="font-weight:800;color:#cfe7ef">${escapeHtml(slot.set_label)}</span>
+          <span style="font-weight:800;color:#cfe7ef">${escapeHtml(slotDisplayLabel(slot.set_label))}</span>
           <select class="gear-slot-select" data-gear-set="${escapeHtml(slot.set)}" data-current="${escapeHtml(slot.current || 'none')}" style="background:#0f1820;color:#e8f6fb;border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:8px">${opts}</select>
         </label>`;
-      }).join('') || '<p class="muted">未見到可更換 slot。</p>';
+      }).join('') || '<p class="muted">未見到可更換裝備欄位。</p>';
       box.innerHTML = `
-        <h3>Stream Avatar Gear</h3>
+        <h3>直播角色裝備</h3>
         <div style="display:grid;grid-template-columns:192px 1fr;gap:16px;align-items:start">
           <div><canvas id="gearPreviewCanvas" width="${previewCanvas}" height="${previewCanvas}" style="width:192px;height:192px;image-rendering:pixelated;border-radius:16px;background:#061016;border:1px solid #24444d"></canvas><div id="gearPreviewNote" class="muted" style="margin-top:8px;font-size:12px">未有改動。</div></div>
-          <div><h4 style="margin:0 0 6px">Current equipped</h4><div>${current}</div><h4 style="margin:14px 0 6px">Change gear</h4><div id="gearSlots">${dropdowns}</div><button id="saveGearChanges" disabled style="margin-top:10px;border:1px solid #7dd3fc;background:#123040;color:#e8f6fb;border-radius:999px;padding:9px 14px;font-weight:900;cursor:pointer">Save gear changes</button></div>
+          <div><h4 style="margin:0 0 6px">更改裝備</h4><div id="gearSlots">${dropdowns}</div><button id="saveGearChanges" disabled style="margin-top:10px;border:1px solid #7dd3fc;background:#123040;color:#e8f6fb;border-radius:999px;padding:9px 14px;font-weight:900;cursor:pointer">儲存裝備</button></div>
         </div>`;
       renderGearPreviewCanvas().catch(()=>{});
     }
@@ -389,19 +396,19 @@
         const applied = rows.filter(r => r.status === 'applied').length;
         const failed = rows.filter(r => r.status === 'failed');
         if(failed.length){
-          if(note) note.innerHTML = `<span class="error">${failed.length} gear change failed；請 refresh 後再試。</span>`;
-          if(btn){ btn.textContent = 'Save gear changes'; btn.disabled = false; }
+          if(note) note.innerHTML = `<span class="error">${failed.length} 個裝備改動失敗；請 refresh 後再試。</span>`;
+          if(btn){ btn.textContent = '儲存裝備'; btn.disabled = false; }
           return;
         }
         if(rows.length && applied === wanted.size){
-          if(note) note.innerHTML = '<span class="ok">Applied. Stream Avatars 已套用。</span>';
-          if(btn){ btn.textContent = 'Applied'; btn.disabled = true; }
+          if(note) note.innerHTML = '<span class="ok">已套用。直播角色裝備已更新。</span>';
+          if(btn){ btn.textContent = '已套用'; btn.disabled = true; }
           return;
         }
-        if(note) note.textContent = `Sent to Stream Avatars… waiting for verify (${applied}/${wanted.size})`;
+        if(note) note.textContent = `已送出，等待確認（${applied}/${wanted.size}）`;
       }
-      if(note) note.innerHTML = '<span class="warn">Sent, but verify 未回來。Stream Avatars 可能已套用；SA export 有時要幾分鐘，refresh 再確認。</span>';
-      if(btn){ btn.textContent = 'Save gear changes'; btn.disabled = false; }
+      if(note) note.innerHTML = '<span class="warn">已送出，但確認未回來。裝備可能已經套用；資料同步有時要幾分鐘，refresh 再確認。</span>';
+      if(btn){ btn.textContent = '儲存裝備'; btn.disabled = false; }
     }
 
     function renderProfile(data){
@@ -436,7 +443,7 @@
       const avatarHtml = avatarOptions.length ? `<div class="stat"><strong>Stream Avatar</strong><span class="stat-value"><span>${avatarButtons}<br><img id="streamAvatarPreview" src="${escapeHtml(avatarOptions[0][2])}" alt="Stream Avatar" style="width:192px;height:192px;image-rendering:pixelated;border-radius:16px;background:#061016;border:1px solid #24444d;object-fit:contain"></span></span></div>` : '';
       const roleHint = profile.discord_linked
         ? '<div class="muted" style="font-size:12px;margin-top:4px">有花生證時會自動同步 Discord 身份組；可能有少少延遲。</div>'
-        : '<div class="muted" style="font-size:12px;margin-top:4px">Connect Discord 後，有花生證會自動補身份組。</div>';
+        : '<div class="muted" style="font-size:12px;margin-top:4px">連結 Discord 後，有花生證會自動補身份組。</div>';
       const unlinkBtn = (platform, enabled) => enabled ? `<button class="unlink" data-unlink="${platform}">解除連結</button>` : '';
       $('accountBox').innerHTML = `
         ${avatarHtml}
@@ -461,7 +468,7 @@
         if(!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
         renderProfile(data);
       }catch(e){
-        $('accountBox').innerHTML = `<p class="error">Profile 載入失敗：${escapeHtml(e.message)}</p>`;
+        $('accountBox').innerHTML = `<p class="error">個人頁載入失敗：${escapeHtml(e.message)}</p>`;
         $('gearBox').innerHTML = '';
         $('seasonBox').innerHTML = '<p class="muted">請稍後再試。</p>';
       }
