@@ -1,5 +1,5 @@
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
-const TWITCH_SCOPES = '';
+const TWITCH_SCOPES = 'user:read:subscriptions';
 const YOUTUBE_SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
 const ALLOWED_ORIGINS = new Set([
   'https://jimpae.info',
