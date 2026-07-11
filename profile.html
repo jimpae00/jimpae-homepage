@@ -459,7 +459,7 @@
         const res = await fetch(`${API}/profile/member-videos/${encodeURIComponent(slug)}/playback`, {method:'POST', credentials:'include'});
         const data = await res.json().catch(()=>({}));
         if(!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
-        player.innerHTML = `<div class="member-player"><iframe src="${escapeHtml(data.iframe_url)}" title="${escapeHtml(data.title || '訂閱影片')}" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
+        player.innerHTML = `<div class="member-player"><iframe src="${escapeHtml(data.iframe_url)}" title="${escapeHtml(data.title || '訂閱影片')}" referrerpolicy="strict-origin" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
         player.scrollIntoView({behavior:'smooth', block:'center'});
       }catch(e){ player.innerHTML = `<p class="error">影片載入失敗：${escapeHtml(e.message)}</p>`; }
       finally{ button.disabled=false; button.textContent='立即觀看'; }

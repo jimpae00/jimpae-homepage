@@ -40,7 +40,8 @@ export default {
       if (url.pathname === '/profile/youtube/callback' && request.method === 'GET') return await youtubeCallback(request, url, env);
       if (url.pathname === '/profile/me' && request.method === 'GET') return await profileMe(request, env);
       if (url.pathname === '/profile/member-videos' && request.method === 'GET') return await profileMemberVideos(request, env);
-      if (url.pathname.startsWith('/profile/member-videos/') && url.pathname.endsWith('/playback') && request.method === 'POST') return await profileMemberVideoPlayback(request, url, env);
+      const memberPlaybackMatch = url.pathname.match(/^\/profile\/member-videos\/([^/]+)\/playback$/);
+      if (memberPlaybackMatch && request.method === 'POST') return await profileMemberVideoPlayback(request, memberPlaybackMatch[1], env);
       if (url.pathname === '/profile/unlink' && request.method === 'POST') return await profileUnlink(request, env);
       if (url.pathname === '/profile/test-deduct' && request.method === 'POST') return await profileTestDeduct(request, env);
       if (url.pathname === '/profile/redeem-s57' && request.method === 'POST') return await profileRedeemS57(request, env);
@@ -226,7 +227,8 @@ async function requireActiveTwitchSub(request, env) {
   const session = await getSession(request, env);
   if (!session?.twitch_user_id) return { ok: false, response: json({ ok: false, error: '請用 Twitch 登入並驗證訂閱。', code: 'twitch_login_required' }, 401) };
   const entitlement = await env.DB.prepare('SELECT is_subscriber, tier, checked_at, valid_until FROM twitch_sub_entitlements WHERE twitch_user_id=?').bind(String(session.twitch_user_id)).first();
-  if (!entitlement || String(entitlement.valid_until) <= new Date().toISOString()) return { ok: false, response: json({ ok: false, error: '訂閱驗證已過期，請重新連結 Twitch。', code: 'reauth_required' }, 403) };
+  const validUntilMs = Date.parse(String(entitlement?.valid_until || ''));
+  if (!entitlement || !Number.isFinite(validUntilMs) || validUntilMs <= Date.now()) return { ok: false, response: json({ ok: false, error: '訂閱驗證已過期，請重新連結 Twitch。', code: 'reauth_required' }, 403) };
   if (!Number(entitlement.is_subscriber)) return { ok: false, response: json({ ok: false, error: '未偵測到有效 Twitch 訂閱。', code: 'not_subscribed' }, 403) };
   return { ok: true, session, entitlement };
 }
@@ -238,21 +240,27 @@ async function profileMemberVideos(request, env) {
   return json({ ok: true, access: { twitch_sub: true, tier: auth.entitlement.tier, checked_at: auth.entitlement.checked_at, valid_until: auth.entitlement.valid_until }, videos: rows.results || [] });
 }
 
-async function profileMemberVideoPlayback(request, url, env) {
+async function profileMemberVideoPlayback(request, encodedSlug, env) {
   const auth = await requireActiveTwitchSub(request, env);
   if (!auth.ok) return auth.response;
   requireEnv(env, ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_STREAM_API_TOKEN', 'CLOUDFLARE_STREAM_CUSTOMER_CODE']);
-  const slug = decodeURIComponent(url.pathname.split('/').filter(Boolean)[2] || '');
-  if (!slug || slug.length > 120) return json({ ok: false, error: 'invalid video' }, 400);
+  let slug = '';
+  try { slug = decodeURIComponent(encodedSlug || ''); } catch { return json({ ok: false, error: 'invalid video' }, 400); }
+  if (!slug || slug.includes('/') || slug.length > 120) return json({ ok: false, error: 'invalid video' }, 400);
   const video = await env.DB.prepare('SELECT slug, title, stream_uid FROM member_videos WHERE slug=? AND enabled=1').bind(slug).first();
   if (!video) return json({ ok: false, error: 'video not found' }, 404);
+  const metadataRes = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(env.CLOUDFLARE_ACCOUNT_ID)}/stream/${encodeURIComponent(video.stream_uid)}`, { headers: { authorization: `Bearer ${env.CLOUDFLARE_STREAM_API_TOKEN}` } });
+  const metadataBody = await metadataRes.json().catch(() => ({}));
+  if (!metadataRes.ok || metadataBody?.success !== true || metadataBody?.result?.requireSignedURLs !== true) return json({ ok: false, error: '影片私隱設定未完成。', code: 'stream_not_private' }, 503);
+  const entitlementExpiry = Math.floor(Date.parse(String(auth.entitlement.valid_until)) / 1000);
+  const tokenExpiry = Math.min(Math.floor(Date.now() / 1000) + 15 * 60, entitlementExpiry);
   const tokenRes = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(env.CLOUDFLARE_ACCOUNT_ID)}/stream/${encodeURIComponent(video.stream_uid)}/token`, {
     method: 'POST', headers: { authorization: `Bearer ${env.CLOUDFLARE_STREAM_API_TOKEN}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 15 * 60, downloadable: false }),
+    body: JSON.stringify({ exp: tokenExpiry, downloadable: false }),
   });
   const tokenBody = await tokenRes.json().catch(() => ({}));
   const playbackToken = tokenBody?.result?.token;
-  if (!tokenRes.ok || !playbackToken) throw new Error(`stream playback token failed ${tokenRes.status}`);
+  if (!tokenRes.ok || tokenBody?.success !== true || typeof playbackToken !== 'string' || !playbackToken) return json({ ok: false, error: '影片播放權限暫時無法建立。', code: 'stream_token_failed' }, 502);
   return json({ ok: true, title: video.title, iframe_url: `https://customer-${env.CLOUDFLARE_STREAM_CUSTOMER_CODE}.cloudflarestream.com/${playbackToken}/iframe`, expires_in: 900 });
 }
 
@@ -429,7 +437,7 @@ async function profileMe(request, env) {
   }
   let twitchSub = null;
   if (session.twitch_user_id) twitchSub = await env.DB.prepare('SELECT is_subscriber, tier, checked_at, valid_until FROM twitch_sub_entitlements WHERE twitch_user_id=?').bind(String(session.twitch_user_id)).first();
-  return json({ ok: true, session, profile: profile || null, twitch_sub: twitchSub ? { active: !!Number(twitchSub.is_subscriber) && String(twitchSub.valid_until) > new Date().toISOString(), subscriber: !!Number(twitchSub.is_subscriber), tier: twitchSub.tier, checked_at: twitchSub.checked_at, valid_until: twitchSub.valid_until } : null, discord_pending: Number(pendingDiscord?.count || 0) > 0, seasons: (ownerships.results || []).map(r => ({ season_number: r.season_number, source_platform: r.source_platform, created_at: r.created_at })), gear_changes: gearChanges.results || [] });
+  return json({ ok: true, session, profile: profile || null, twitch_sub: twitchSub ? { active: !!Number(twitchSub.is_subscriber) && Number.isFinite(Date.parse(String(twitchSub.valid_until))) && Date.parse(String(twitchSub.valid_until)) > Date.now(), subscriber: !!Number(twitchSub.is_subscriber), tier: twitchSub.tier, checked_at: twitchSub.checked_at, valid_until: twitchSub.valid_until } : null, discord_pending: Number(pendingDiscord?.count || 0) > 0, seasons: (ownerships.results || []).map(r => ({ season_number: r.season_number, source_platform: r.source_platform, created_at: r.created_at })), gear_changes: gearChanges.results || [] });
 }
 
 async function getSession(request, env) {
