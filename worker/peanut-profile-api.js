@@ -39,6 +39,8 @@ export default {
       if (url.pathname === '/profile/youtube/login' && request.method === 'GET') return await youtubeLogin(request, url, env);
       if (url.pathname === '/profile/youtube/callback' && request.method === 'GET') return await youtubeCallback(request, url, env);
       if (url.pathname === '/profile/me' && request.method === 'GET') return await profileMe(request, env);
+      if (url.pathname === '/profile/member-videos' && request.method === 'GET') return await profileMemberVideos(request, env);
+      if (url.pathname.startsWith('/profile/member-videos/') && url.pathname.endsWith('/playback') && request.method === 'POST') return await profileMemberVideoPlayback(request, url, env);
       if (url.pathname === '/profile/unlink' && request.method === 'POST') return await profileUnlink(request, env);
       if (url.pathname === '/profile/test-deduct' && request.method === 'POST') return await profileTestDeduct(request, env);
       if (url.pathname === '/profile/redeem-s57' && request.method === 'POST') return await profileRedeemS57(request, env);
@@ -185,13 +187,21 @@ async function twitchLogin(request, url, env) {
 }
 
 async function twitchCallback(request, url, env) {
-  requireEnv(env, ['TWITCH_CLIENT_ID', 'TWITCH_CLIENT_SECRET', 'TWITCH_REDIRECT_URI', 'COOKIE_SECRET']);
+  requireEnv(env, ['TWITCH_CLIENT_ID', 'TWITCH_CLIENT_SECRET', 'TWITCH_REDIRECT_URI', 'TWITCH_BROADCASTER_ID', 'COOKIE_SECRET']);
   const oauthState = readOauthState(request, url, 'peanut_oauth');
   const token = await exchangeToken('https://id.twitch.tv/oauth2/token', { client_id: env.TWITCH_CLIENT_ID, client_secret: env.TWITCH_CLIENT_SECRET, code: url.searchParams.get('code'), grant_type: 'authorization_code', redirect_uri: env.TWITCH_REDIRECT_URI }, 'twitch');
   const userRes = await fetch('https://api.twitch.tv/helix/users', { headers: { 'client-id': env.TWITCH_CLIENT_ID, authorization: `Bearer ${token.access_token}` } });
   if (!userRes.ok) return json({ ok: false, error: `twitch user failed ${userRes.status}` }, 502);
   const user = (await userRes.json()).data?.[0];
   if (!user) return json({ ok: false, error: 'twitch user not found' }, 502);
+  const sub = await checkTwitchSubscription(user.id, token.access_token, env);
+  const checkedAt = new Date();
+  const validUntil = new Date(checkedAt.getTime() + 24 * 60 * 60 * 1000);
+  await env.DB.prepare(`
+    INSERT INTO twitch_sub_entitlements (twitch_user_id, is_subscriber, tier, checked_at, valid_until)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(twitch_user_id) DO UPDATE SET is_subscriber=excluded.is_subscriber, tier=excluded.tier, checked_at=excluded.checked_at, valid_until=excluded.valid_until
+  `).bind(String(user.id), sub.isSubscriber ? 1 : 0, sub.tier || null, checkedAt.toISOString(), validUntil.toISOString()).run();
   await env.DB.prepare(`
     INSERT INTO pending_twitch_links
     (twitch_user_id, twitch_login, twitch_display_name, youtube_channel_id, discord_user_id, current_viewer_id, status, created_at)
@@ -199,6 +209,51 @@ async function twitchCallback(request, url, env) {
   `).bind(String(user.id), user.login || null, user.display_name || user.login || null, oauthState.youtube_channel_id || null, oauthState.discord_user_id || null, oauthState.current_viewer_id || null, new Date().toISOString()).run();
   const session = await signSession({ provider: 'twitch', twitch_user_id: String(user.id), twitch_login: user.login, exp: sessionExp() }, env.COOKIE_SECRET);
   return callbackRedirect(oauthState.return_to, 'peanut_oauth', session);
+}
+
+async function checkTwitchSubscription(userId, accessToken, env) {
+  const endpoint = new URL('https://api.twitch.tv/helix/subscriptions/user');
+  endpoint.searchParams.set('broadcaster_id', String(env.TWITCH_BROADCASTER_ID));
+  endpoint.searchParams.set('user_id', String(userId));
+  const res = await fetch(endpoint, { headers: { 'client-id': env.TWITCH_CLIENT_ID, authorization: `Bearer ${accessToken}` } });
+  if (res.status === 404) return { isSubscriber: false, tier: null };
+  if (!res.ok) throw new Error(`twitch subscription check failed ${res.status}`);
+  const row = (await res.json()).data?.[0];
+  return { isSubscriber: !!row, tier: row?.tier || null };
+}
+
+async function requireActiveTwitchSub(request, env) {
+  const session = await getSession(request, env);
+  if (!session?.twitch_user_id) return { ok: false, response: json({ ok: false, error: '請用 Twitch 登入並驗證訂閱。', code: 'twitch_login_required' }, 401) };
+  const entitlement = await env.DB.prepare('SELECT is_subscriber, tier, checked_at, valid_until FROM twitch_sub_entitlements WHERE twitch_user_id=?').bind(String(session.twitch_user_id)).first();
+  if (!entitlement || String(entitlement.valid_until) <= new Date().toISOString()) return { ok: false, response: json({ ok: false, error: '訂閱驗證已過期，請重新連結 Twitch。', code: 'reauth_required' }, 403) };
+  if (!Number(entitlement.is_subscriber)) return { ok: false, response: json({ ok: false, error: '未偵測到有效 Twitch 訂閱。', code: 'not_subscribed' }, 403) };
+  return { ok: true, session, entitlement };
+}
+
+async function profileMemberVideos(request, env) {
+  const auth = await requireActiveTwitchSub(request, env);
+  if (!auth.ok) return auth.response;
+  const rows = await env.DB.prepare('SELECT slug, title, description, thumbnail_url, published_at FROM member_videos WHERE enabled=1 ORDER BY sort_order DESC, published_at DESC, id DESC').all();
+  return json({ ok: true, access: { twitch_sub: true, tier: auth.entitlement.tier, checked_at: auth.entitlement.checked_at, valid_until: auth.entitlement.valid_until }, videos: rows.results || [] });
+}
+
+async function profileMemberVideoPlayback(request, url, env) {
+  const auth = await requireActiveTwitchSub(request, env);
+  if (!auth.ok) return auth.response;
+  requireEnv(env, ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_STREAM_API_TOKEN', 'CLOUDFLARE_STREAM_CUSTOMER_CODE']);
+  const slug = decodeURIComponent(url.pathname.split('/').filter(Boolean)[2] || '');
+  if (!slug || slug.length > 120) return json({ ok: false, error: 'invalid video' }, 400);
+  const video = await env.DB.prepare('SELECT slug, title, stream_uid FROM member_videos WHERE slug=? AND enabled=1').bind(slug).first();
+  if (!video) return json({ ok: false, error: 'video not found' }, 404);
+  const tokenRes = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(env.CLOUDFLARE_ACCOUNT_ID)}/stream/${encodeURIComponent(video.stream_uid)}/token`, {
+    method: 'POST', headers: { authorization: `Bearer ${env.CLOUDFLARE_STREAM_API_TOKEN}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 15 * 60, downloadable: false }),
+  });
+  const tokenBody = await tokenRes.json().catch(() => ({}));
+  const playbackToken = tokenBody?.result?.token;
+  if (!tokenRes.ok || !playbackToken) throw new Error(`stream playback token failed ${tokenRes.status}`);
+  return json({ ok: true, title: video.title, iframe_url: `https://customer-${env.CLOUDFLARE_STREAM_CUSTOMER_CODE}.cloudflarestream.com/${playbackToken}/iframe`, expires_in: 900 });
 }
 
 async function discordLogin(request, url, env) {
@@ -372,7 +427,9 @@ async function profileMe(request, env) {
   if (profile) {
     gearChanges = await env.DB.prepare("SELECT id, platform, gear_set, gear_piece, status, created_at, applied_at FROM pending_avatar_gear_changes WHERE viewer_id=? AND status IN ('pending','applied') ORDER BY id DESC LIMIT 100").bind(profile.viewer_id).all();
   }
-  return json({ ok: true, session, profile: profile || null, discord_pending: Number(pendingDiscord?.count || 0) > 0, seasons: (ownerships.results || []).map(r => ({ season_number: r.season_number, source_platform: r.source_platform, created_at: r.created_at })), gear_changes: gearChanges.results || [] });
+  let twitchSub = null;
+  if (session.twitch_user_id) twitchSub = await env.DB.prepare('SELECT is_subscriber, tier, checked_at, valid_until FROM twitch_sub_entitlements WHERE twitch_user_id=?').bind(String(session.twitch_user_id)).first();
+  return json({ ok: true, session, profile: profile || null, twitch_sub: twitchSub ? { active: !!Number(twitchSub.is_subscriber) && String(twitchSub.valid_until) > new Date().toISOString(), subscriber: !!Number(twitchSub.is_subscriber), tier: twitchSub.tier, checked_at: twitchSub.checked_at, valid_until: twitchSub.valid_until } : null, discord_pending: Number(pendingDiscord?.count || 0) > 0, seasons: (ownerships.results || []).map(r => ({ season_number: r.season_number, source_platform: r.source_platform, created_at: r.created_at })), gear_changes: gearChanges.results || [] });
 }
 
 async function getSession(request, env) {

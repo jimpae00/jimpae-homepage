@@ -13,6 +13,7 @@
 
     .profile-tabs{margin-top:14px}.tabbar{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px}.tab-btn{min-height:44px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.045);color:var(--muted);font-weight:900;padding:10px 15px;cursor:pointer;transition:background .2s ease,border-color .2s ease,color .2s ease,transform .2s ease}.tab-btn:hover{background:rgba(255,255,255,.08);color:var(--foreground);transform:translateY(-1px)}.tab-btn:focus-visible,.collapse-head:focus-visible{outline:3px solid rgba(110,214,255,.55);outline-offset:3px}.tab-btn.active{background:linear-gradient(135deg,rgba(110,214,255,.24),rgba(167,243,255,.16));border-color:rgba(110,214,255,.55);color:var(--foreground)}.tab-panel{display:none}.tab-panel.active{display:block}.tab-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.collapsible-card{padding:0;overflow:hidden}.collapse-head{width:100%;min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:14px;border:0;background:transparent;color:var(--foreground);padding:20px 22px;cursor:pointer;text-align:left}.collapse-title{display:grid;gap:3px}.section-kicker{color:var(--primary);font-size:11px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}.collapse-title strong{font-size:20px}.chevron{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:999px;border:1px solid var(--border);color:var(--primary);transition:transform .2s ease,background .2s ease}.collapsible-card.is-open .chevron{transform:rotate(180deg);background:rgba(110,214,255,.10)}.collapse-body{padding:0 22px 22px}.collapsible-card:not(.is-open) .collapse-body{display:none}.help-copy{color:#cbe1eb;line-height:1.65;margin:0}.gear-tab-intro{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin:0 0 14px}.gear-tab-intro p{margin:0}.status-chip{display:inline-flex;align-items:center;border:1px solid rgba(134,239,172,.28);background:rgba(134,239,172,.10);color:#b7f7c9;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;white-space:nowrap}@media(max-width:760px){.tab-grid{grid-template-columns:1fr}.gear-tab-intro{display:grid}.tab-btn{flex:1 1 auto}.collapse-head{padding:18px}.collapse-body{padding:0 18px 18px}}@media(prefers-reduced-motion:reduce){.tab-btn,.chevron{transition:none}.tab-btn:hover{transform:none}}
 
+    .member-video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.member-video-card{border:1px solid var(--border);border-radius:18px;overflow:hidden;background:rgba(255,255,255,.035)}.member-video-thumb{width:100%;aspect-ratio:16/9;object-fit:cover;background:#02070a}.member-video-copy{padding:14px}.member-video-copy h3{margin:0 0 7px}.member-player{margin-top:16px;aspect-ratio:16/9;border:1px solid var(--border);border-radius:18px;overflow:hidden;background:#000}.member-player iframe{width:100%;height:100%;border:0}.member-access{margin-bottom:14px;padding:13px 15px;border-radius:15px;border:1px solid var(--border);background:rgba(255,255,255,.035)}
     .gear-card{overflow:visible}.gear-layout{display:grid;grid-template-columns:192px minmax(0,1fr);gap:16px;align-items:start}.gear-editor{min-width:0}.gear-save-bar{position:sticky;bottom:14px;z-index:30;margin-top:14px;padding:12px;border:1px solid rgba(110,214,255,.35);border-radius:18px;background:rgba(6,16,22,.88);box-shadow:0 18px 50px rgba(0,0,0,.38);backdrop-filter:blur(14px);display:flex;justify-content:flex-end}.gear-save-bar .gear-save-btn{min-width:150px;border:1px solid #7dd3fc;background:linear-gradient(135deg,#123040,#17445a);color:#e8f6fb;border-radius:999px;padding:11px 16px;font-weight:900;cursor:pointer}.gear-save-bar .gear-save-btn:disabled{opacity:.55;cursor:not-allowed;background:#123040}@media(max-width:760px){.gear-layout{grid-template-columns:1fr}.gear-save-bar{bottom:10px}.gear-save-bar .gear-save-btn{width:100%}}
   </style>
 </head>
@@ -41,6 +42,7 @@
       <div class="tabbar" role="tablist" aria-label="個人頁分頁">
         <button class="tab-btn active" type="button" role="tab" aria-selected="true" aria-controls="overviewTab" data-tab-target="overviewTab">總覽</button>
         <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="gearTab" data-tab-target="gearTab">直播角色裝備</button>
+        <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="memberVideosTab" data-tab-target="memberVideosTab">Twitch 訂閱影片</button>
         <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="helpTab" data-tab-target="helpTab">說明</button>
       </div>
 
@@ -79,6 +81,19 @@
         </article>
       </section>
 
+      <section id="memberVideosTab" class="tab-panel" role="tabpanel" aria-label="Twitch 訂閱影片">
+        <article class="panel collapsible-card is-open" data-collapsible>
+          <button class="collapse-head" type="button" aria-expanded="true">
+            <span class="collapse-title"><span class="section-kicker">Twitch Subscribers</span><strong>訂閱者影片</strong></span>
+            <span class="chevron" aria-hidden="true">⌄</span>
+          </button>
+          <div class="collapse-body">
+            <div id="memberVideoBox" class="loading">用 Twitch 登入後顯示。</div>
+            <div id="memberPlayerBox"></div>
+          </div>
+        </article>
+      </section>
+
       <section id="helpTab" class="tab-panel" role="tabpanel" aria-label="說明">
         <article class="panel collapsible-card is-open" data-collapsible>
           <button class="collapse-head" type="button" aria-expanded="true">
@@ -113,6 +128,7 @@
       });
       document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.toggle('active', panel.id === targetId));
       if(targetId === 'gearTab') renderGearPreviewCanvas().catch(()=>{});
+      if(targetId === 'memberVideosTab') loadMemberVideos().catch(()=>{});
     }
 
     function toggleCollapsible(button){
@@ -198,6 +214,11 @@
         pollGearApplyStatus(queuedIds).catch(()=>{});
         return;
       }
+      const watchBtn = e.target.closest('[data-member-video]');
+      if(watchBtn){
+        await playMemberVideo(watchBtn.dataset.memberVideo, watchBtn);
+        return;
+      }
       const btn = e.target.closest('[data-unlink]');
       if(!btn) return;
       const platform = btn.dataset.unlink;
@@ -222,6 +243,8 @@
       $('accountBox').innerHTML = `<p class="muted">${escapeHtml(message)}</p>`;
       $('gearBox').innerHTML = '';
       $('seasonBox').innerHTML = '<p class="muted">登入後會顯示你擁有嘅花生證。</p>';
+      $('memberVideoBox').innerHTML = '<p class="muted">請用 Twitch 登入並驗證訂閱。</p>';
+      $('memberPlayerBox').innerHTML = '';
     }
 
     const previewImageCache = new Map();
@@ -414,6 +437,34 @@
       if(btn){ btn.textContent = '儲存裝備'; btn.disabled = false; }
     }
 
+    async function loadMemberVideos(){
+      const box = $('memberVideoBox');
+      box.innerHTML = '<p class="loading">檢查 Twitch 訂閱...</p>';
+      const res = await fetch(`${API}/profile/member-videos`, {credentials:'include', cache:'no-store'});
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok || !data.ok){
+        const relink = data.code === 'reauth_required' || data.code === 'twitch_login_required';
+        box.innerHTML = `<div class="member-access"><strong>未能開啟訂閱影片</strong><p class="muted">${escapeHtml(data.error || '請重新連結 Twitch。')}</p>${relink?`<a class="btn btn-primary" href="${escapeHtml($('loginBtn').href)}">重新連結 Twitch</a>`:''}</div>`;
+        $('memberPlayerBox').innerHTML = '';
+        return;
+      }
+      const videos = data.videos || [];
+      box.innerHTML = `<div class="member-access"><span class="ok">Twitch 訂閱已驗證</span><div class="muted" style="font-size:12px;margin-top:4px">播放連結只有短時間有效，影片只可在登入後播放。</div></div>` + (videos.length ? `<div class="member-video-grid">${videos.map(v=>`<article class="member-video-card">${v.thumbnail_url?`<img class="member-video-thumb" src="${escapeHtml(v.thumbnail_url)}" alt="">`:''}<div class="member-video-copy"><h3>${escapeHtml(v.title)}</h3><p class="muted">${escapeHtml(v.description || '')}</p><button class="btn btn-primary" data-member-video="${escapeHtml(v.slug)}">立即觀看</button></div></article>`).join('')}</div>` : '<p class="muted">暫時未有影片。</p>');
+    }
+
+    async function playMemberVideo(slug, button){
+      const player = $('memberPlayerBox');
+      button.disabled = true; button.textContent = '載入中...';
+      try{
+        const res = await fetch(`${API}/profile/member-videos/${encodeURIComponent(slug)}/playback`, {method:'POST', credentials:'include'});
+        const data = await res.json().catch(()=>({}));
+        if(!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        player.innerHTML = `<div class="member-player"><iframe src="${escapeHtml(data.iframe_url)}" title="${escapeHtml(data.title || '訂閱影片')}" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
+        player.scrollIntoView({behavior:'smooth', block:'center'});
+      }catch(e){ player.innerHTML = `<p class="error">影片載入失敗：${escapeHtml(e.message)}</p>`; }
+      finally{ button.disabled=false; button.textContent='立即觀看'; }
+    }
+
     function renderProfile(data){
       const profile = data.profile || {};
       $('loginBtn').textContent = profile.twitch_user_id ? '更換 Twitch' : '連結 Twitch';
@@ -430,6 +481,7 @@
       $('testDeductBtn').textContent = '測試扣 100 占幣';
       $('logoutBtn').classList.remove('hidden');
       const twitch = profile.twitch_login || data.session?.twitch_login || '';
+      const twitchSub = data.twitch_sub?.active ? '<span class="ok">訂閱已驗證</span>' : (data.twitch_sub ? '<span class="warn">未有有效訂閱</span>' : '<span class="muted">未驗證</span>');
       const youtube = profile.youtube_display_name || data.session?.youtube_display_name || profile.youtube_handle || data.session?.youtube_handle || '';
       const youtubeHandle = profile.youtube_handle || data.session?.youtube_handle || '';
       const discord = profile.discord_linked ? '<span class="ok">已連結</span>' : (data.discord_pending ? '<span class="warn">連結處理中</span>' : '<span class="warn">未連結</span>');
@@ -452,6 +504,7 @@
         ${avatarHtml}
         <div class="stat"><strong>PTS</strong><span class="stat-value"><span>${escapeHtml(pts)}${ptsHint}</span></span></div>
         <div class="stat"><strong>Twitch</strong><span class="stat-value"><span>${escapeHtml(twitch ? '@'+twitch : '—')}</span>${unlinkBtn('twitch', !!profile.twitch_user_id)}</span></div>
+        <div class="stat"><strong>Twitch 訂閱</strong><span>${twitchSub}</span></div>
         <div class="stat"><strong>YouTube</strong><span class="stat-value"><span>${escapeHtml(youtube || youtubeHandle || '—')}</span>${unlinkBtn('youtube', !!profile.youtube_channel_id)}</span></div>
         <div class="stat"><strong>Discord</strong><span class="stat-value"><span><span>${discord}</span>${roleHint}</span>${unlinkBtn('discord', !!profile.discord_user_id)}</span></div>
         <div class="stat"><strong>最後同步</strong><span>${escapeHtml(synced)}</span></div>
@@ -474,6 +527,7 @@
         $('accountBox').innerHTML = `<p class="error">個人頁載入失敗：${escapeHtml(e.message)}</p>`;
         $('gearBox').innerHTML = '';
         $('seasonBox').innerHTML = '<p class="muted">請稍後再試。</p>';
+        $('memberVideoBox').innerHTML = '<p class="muted">請稍後再試。</p>';
       }
     }
     init();

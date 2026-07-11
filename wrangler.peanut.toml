@@ -3,6 +3,11 @@ main = "worker/peanut-profile-api.js"
 compatibility_date = "2026-06-28"
 account_id = "293544a66dd3f3fdcc5538df16295520"
 workers_dev = true
+
+[vars]
+TWITCH_BROADCASTER_ID = "229138740"
+CLOUDFLARE_ACCOUNT_ID = "293544a66dd3f3fdcc5538df16295520"
+
 routes = [
   { pattern = "peanut-api.jimpae.info", custom_domain = true }
 ]
