@@ -132,11 +132,11 @@
       try{
         let data;
         try{
-          const res = await fetch('https://jimpae-leaderboard-api.jimpae00.workers.dev/leaderboard.json', {cache:'no-store'});
+          const res = await fetch('https://jimpae-leaderboard-api.jimpae00.workers.dev/leaderboard.json');
           if(!res.ok) throw new Error(`HTTP ${res.status}`);
           data = await res.json();
         }catch(remoteErr){
-          const res = await fetch('assets/leaderboard.json', {cache:'no-store'});
+          const res = await fetch('assets/leaderboard.json');
           if(!res.ok) throw new Error(`Remote ${remoteErr.message}; fallback HTTP ${res.status}`);
           data = await res.json();
         }

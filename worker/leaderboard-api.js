@@ -22,7 +22,7 @@ export default {
       status: 200,
       headers: {
         'content-type': 'application/json; charset=utf-8',
-        'cache-control': 'public, max-age=60, stale-while-revalidate=240',
+        'cache-control': 'public, max-age=300, stale-while-revalidate=600',
       },
     }));
   },
