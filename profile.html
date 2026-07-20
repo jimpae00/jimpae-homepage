@@ -159,6 +159,7 @@
         btn.setAttribute('aria-selected', active ? 'true' : 'false');
       });
       document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.toggle('active', panel.id === targetId));
+      isGearTabActive = (targetId === 'gearTab');
       if(targetId === 'gearTab') renderGearPreviewCanvas().catch(()=>{});
       if(targetId === 'memberVideosTab') loadMemberVideos().catch(()=>{});
     }
@@ -436,20 +437,41 @@
     }
 
 
+    // Only poll after user saves gear changes. No background profile polling.
+    let activeGearPollToken = 0;
+    let isGearTabActive = false;
+
+    async function waitWhilePaused(token){
+      while((isPollingPaused || document.visibilityState !== 'visible' || !isGearTabActive) && token === activeGearPollToken){
+        await new Promise(r => setTimeout(r, 1000));
+      }
+      return token === activeGearPollToken;
+    }
+
     async function pollGearApplyStatus(ids, timeoutMs=240000){
       const note = document.getElementById('gearPreviewNote');
       const btn = document.getElementById('saveGearChanges');
       const start = Date.now();
       const wanted = new Set(ids.map(x => Number(x)).filter(Boolean));
       if(!wanted.size) return;
-      while(Date.now() - start < timeoutMs){
-        await new Promise(r => setTimeout(r, 12000));
+
+      const token = ++activeGearPollToken; // cancel older polls
+      while(Date.now() - start < timeoutMs && token === activeGearPollToken){
+        // Fully pause when idle / hidden / not on Gear tab
+        const stillActive = await waitWhilePaused(token);
+        if(!stillActive) return;
+
+        await new Promise(r => setTimeout(r, 15000)); // 15s only while actively waiting
+        if(token !== activeGearPollToken) return;
+        if(isPollingPaused || document.visibilityState !== 'visible' || !isGearTabActive) continue;
+
         let data = null;
         try{
-          const res = await fetch(`${API}/profile/me`, {credentials:'include', cache:'no-store'});
+          const res = await fetch(`${API}/profile/me`, {credentials:'include'});
           data = await res.json();
           if(!res.ok || !data.ok) continue;
         }catch(e){ continue; }
+
         const rows = (data.gear_changes || []).filter(r => wanted.has(Number(r.id)));
         const applied = rows.filter(r => r.status === 'applied').length;
         const failed = rows.filter(r => r.status === 'failed');
@@ -465,6 +487,7 @@
         }
         if(note) note.textContent = `已送出，等待確認（${applied}/${wanted.size}）`;
       }
+      if(token !== activeGearPollToken) return;
       if(note) note.innerHTML = '<span class="warn">已送出，但確認未回來。裝備可能已經套用；資料同步有時要幾分鐘，refresh 再確認。</span>';
       if(btn){ btn.textContent = '儲存裝備'; btn.disabled = false; }
     }
@@ -472,7 +495,7 @@
     async function loadMemberVideos(){
       const box = $('memberVideoBox');
       box.innerHTML = '<p class="loading">檢查 Twitch 訂閱...</p>';
-      const res = await fetch(`${API}/profile/member-videos`, {credentials:'include', cache:'no-store'});
+      const res = await fetch(`${API}/profile/member-videos`, {credentials:'include'});
       const data = await res.json().catch(()=>({}));
       if(!res.ok || !data.ok){
         const relink = data.code === 'reauth_required' || data.code === 'twitch_login_required';
