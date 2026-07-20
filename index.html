@@ -117,7 +117,7 @@
     async function loadPatchNotes(){
       const list = $('patchNotesList');
       try{
-        const res = await fetch('assets/patchnotes.json', {cache:'no-store'});
+        const res = await fetch('assets/patchnotes.json', );
         if(!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         renderPatchNotes(data.entries || []);

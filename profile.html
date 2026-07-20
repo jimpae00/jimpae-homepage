@@ -328,7 +328,7 @@
       const box = $('gearBox');
       box.innerHTML = '<p class="loading">載入直播角色裝備...</p>';
       try{
-        const res = await fetch('/assets/avatar-renders/gear-manifest.json', {cache:'no-store'});
+        const res = await fetch('/assets/avatar-renders/gear-manifest.json', );
         const manifest = await res.json();
         const entry = (manifest.viewers || []).find(v => Number(v.viewer_id) === Number(profile.viewer_id));
         window.profileGearEntry = applyLatestGearChanges(entry || null, gearChanges);
@@ -411,7 +411,7 @@
       const wanted = new Set(ids.map(x => Number(x)).filter(Boolean));
       if(!wanted.size) return;
       while(Date.now() - start < timeoutMs){
-        await new Promise(r => setTimeout(r, 3000));
+        await new Promise(r => setTimeout(r, 8000));
         let data = null;
         try{
           const res = await fetch(`${API}/profile/me`, {credentials:'include', cache:'no-store'});

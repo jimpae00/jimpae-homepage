@@ -484,7 +484,11 @@ function callbackRedirect(returnTo, oauthCookie, session) {
 
 function sessionExp() { return Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30; }
 function requireEnv(env, keys) { for (const k of keys) if (!env[k]) throw new Error(`server missing ${k}`); }
-function json(obj, status = 200) { return cors(new Response(JSON.stringify(obj), { status, headers: JSON_HEADERS })); }
+function json(obj, status = 200, cacheControl = null) {
+  const headers = { ...JSON_HEADERS };
+  if (cacheControl) headers["cache-control"] = cacheControl;
+  return cors(new Response(JSON.stringify(obj), { status, headers }));
+}
 function cors(resp, request) {
   const headers = new Headers(resp.headers);
   const origin = request?.headers?.get('origin') || 'https://jimpae.info';
