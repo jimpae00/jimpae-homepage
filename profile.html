@@ -114,6 +114,38 @@
     const $ = id => document.getElementById(id);
     const escapeHtml = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     const returnTo = `${location.origin}${location.pathname}`;
+    // Idle detection for quota saving
+    let lastActivity = Date.now();
+    let isPollingPaused = false;
+    const IDLE_TIMEOUT = 30000; // 30 seconds
+
+    function resetActivity() {
+      lastActivity = Date.now();
+      if (isPollingPaused) {
+        isPollingPaused = false;
+      }
+    }
+
+    function checkIdle() {
+      if (document.visibilityState !== 'visible' || (Date.now() - lastActivity > IDLE_TIMEOUT)) {
+        isPollingPaused = true;
+      }
+    }
+
+    // Setup activity listeners
+    function setupIdleDetection() {
+      document.addEventListener('visibilitychange', checkIdle);
+      document.addEventListener('mousemove', resetActivity);
+      document.addEventListener('keydown', resetActivity);
+      document.addEventListener('click', resetActivity);
+      document.addEventListener('scroll', resetActivity);
+
+      // Check idle every 5 seconds
+      setInterval(checkIdle, 5000);
+    }
+
+    // Call setup on load
+    setupIdleDetection();
 
     $('loginBtn').href = `${API}/profile/twitch/login?return_to=${encodeURIComponent(returnTo)}`;
     $('discordBtn').href = `${API}/profile/discord/login?return_to=${encodeURIComponent(returnTo)}`;
@@ -411,7 +443,7 @@
       const wanted = new Set(ids.map(x => Number(x)).filter(Boolean));
       if(!wanted.size) return;
       while(Date.now() - start < timeoutMs){
-        await new Promise(r => setTimeout(r, 8000));
+        await new Promise(r => setTimeout(r, 12000));
         let data = null;
         try{
           const res = await fetch(`${API}/profile/me`, {credentials:'include', cache:'no-store'});
