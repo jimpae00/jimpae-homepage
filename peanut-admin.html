@@ -93,7 +93,7 @@ function render(d){
  <div class="card"><h2>Discord Sync</h2>${table('discord', d.discord_sync||[], [['時間','created_at'],['viewer','viewer_id'],['season','season_number'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`,'status'],['message','message']])}</div>
  <div class="card"><h2>Identity Changes</h2>${table('identity', d.identity_changes||[], [['時間','created_at'],['viewer','viewer_id'],['type','change_type'],['Twitch',r=>`${esc(r.old_twitch_login||r.old_twitch_user_id||'')} → ${esc(r.new_twitch_login||r.new_twitch_user_id||'')}`,'new_twitch_login'],['YouTube',r=>`${esc(r.old_youtube_handle||r.old_youtube_channel_id||'')} → ${esc(r.new_youtube_handle||r.new_youtube_channel_id||'')}`,'new_youtube_handle']])}</div>
  <div class="card" id="gearCatalogCard"><h2>Gear Catalog <span class="muted small">(Database)</span></h2><div id="gearCatalogRoot"><p class="muted">載入中...</p></div></div>
- `;
+ `; loadGearCatalog();
 }
 let currentData=null;
 async function load(){status.textContent='載入中...';try{const r=await fetch(`${API}/profile/admin/status`,{credentials:'include'});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||`HTTP ${r.status}`);status.textContent=`更新：${j.updated_at||'未有'}`;currentData=j.data;render(j.data)}catch(e){status.textContent='';root.innerHTML=`<p class="bad">載入失敗：${esc(e.message)}</p><p class="muted">請先用 Jimpae account 登入 /profile。</p>`}}
@@ -265,7 +265,5 @@ document.addEventListener('change', async e=>{
   }catch(e){alert('更新失敗：'+e.message);}
   inp.disabled=false;
 });
-// Load gear catalog on page open
-document.addEventListener('gearCatalogCard', ()=>loadGearCatalog(), {once:true});
-setTimeout(()=>loadGearCatalog(),500);
+// Gear catalog loaded inside render() after div is created
 </script></body></html>
