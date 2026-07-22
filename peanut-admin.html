@@ -92,6 +92,7 @@ function render(d){
  </div>
  <div class="card"><h2>Discord Sync</h2>${table('discord', d.discord_sync||[], [['時間','created_at'],['viewer','viewer_id'],['season','season_number'],['status',r=>`<span class="${cls(r.status)}">${esc(r.status)}</span>`,'status'],['message','message']])}</div>
  <div class="card"><h2>Identity Changes</h2>${table('identity', d.identity_changes||[], [['時間','created_at'],['viewer','viewer_id'],['type','change_type'],['Twitch',r=>`${esc(r.old_twitch_login||r.old_twitch_user_id||'')} → ${esc(r.new_twitch_login||r.new_twitch_user_id||'')}`,'new_twitch_login'],['YouTube',r=>`${esc(r.old_youtube_handle||r.old_youtube_channel_id||'')} → ${esc(r.new_youtube_handle||r.new_youtube_channel_id||'')}`,'new_youtube_handle']])}</div>
+ <div class="card" id="gearCatalogCard"><h2>Gear Catalog <span class="muted small">(Database)</span></h2><div id="gearCatalogRoot"><p class="muted">載入中...</p></div></div>
  `;
 }
 let currentData=null;
@@ -108,4 +109,163 @@ refresh.onclick=load;
 searchBtn.onclick=()=>{ if(currentData) render(currentData); };
 viewerSearch.addEventListener('keydown', e=>{ if(e.key==='Enter'&&currentData) render(currentData); });
 load();
+/* ───────── Gear Catalog Manager ───────── */
+let cachedGears=[];
+async function loadGearCatalog(){
+  const root=document.getElementById('gearCatalogRoot');
+  if(!root) return;
+  try{
+    const r=await fetch(`${API}/admin/gear-catalog`,{credentials:'include'});
+    const j=await r.json();
+    if(!r.ok||!j.ok) throw new Error(j.error||`HTTP ${r.status}`);
+    cachedGears=j.gears||[];
+    renderGearCatalog(cachedGears);
+  }catch(e){
+    root.innerHTML=`<p class="bad">載入失敗：${esc(e.message)}</p>`;
+  }
+}
+function renderGearCatalog(gears){
+  const root=document.getElementById('gearCatalogRoot');
+  if(!root) return;
+  // Group by set for collapsible sections
+  const bySet={};
+  for(const g of gears){
+    const s=g.gear_set||'other';
+    if(!bySet[s]) bySet[s]={label:g.set_label||s,items:[]};
+    bySet[s].items.push(g);
+  }
+  const setNames=Object.keys(bySet).sort((a,b)=>a.localeCompare(b));
+  // Add form
+  let html=`<div class="toolbar">
+    <button id="gearCatalogRefresh" onclick="loadGearCatalog()">重新整理</button>
+    <button id="gearSeedBtn">從 Manifest Seed</button>
+    <span class="muted small">${gears.length} 件裝備</span>
+  </div>
+  <div id="gearAddForm" class="card" style="margin-bottom:14px">
+    <h3>新增 Gear</h3>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:end">
+      <label class="small">Set<br><input id="gcNewSet" placeholder="jp_hats" style="width:120px"/></label>
+      <label class="small">Set Label<br><input id="gcNewSetLabel" placeholder="Hats" style="width:100px"/></label>
+      <label class="small">Piece<br><input id="gcNewPiece" placeholder="cat_ears" style="width:120px"/></label>
+      <label class="small">Label<br><input id="gcNewLabel" placeholder="Cat Ears" style="width:120px"/></label>
+      <label class="small">Price<br><input id="gcNewPrice" type="number" min="0" value="0" style="width:70px"/></label>
+      <label class="small">Sort<br><input id="gcNewSort" type="number" min="0" value="0" style="width:50px"/></label>
+      <button id="gcAddBtn">新增</button>
+    </div>
+  </div>`;
+  for(const setName of setNames){
+    const grp=bySet[setName];
+    const items=grp.items;
+    html+=`<div class="card" style="margin-bottom:10px">
+      <h3>${esc(grp.label||setName)} <span class="muted small">${items.length} 件</span></h3>
+      ${table('gc_'+setName,items,[
+        ['ID','id'],
+        ['Piece',r=>`${esc(r.gear_piece)}`,'gear_piece'],
+        ['Label',r=>`<input class="gc-edit" data-field="label" data-id="${r.id}" value="${esc(r.label||'')}" style="width:130px"/>`,'label'],
+        ['Set',r=>`<span class="muted small">${esc(r.gear_set)}</span>`,'gear_set'],
+        ['Price',r=>`<input class="gc-edit" data-field="price" data-id="${r.id}" type="number" min="0" value="${Number(r.price)}" style="width:70px"/>`,'price'],
+        ['Sort',r=>`<input class="gc-edit" data-field="sort_order" data-id="${r.id}" type="number" min="0" value="${Number(r.sort_order)}" style="width:50px"/>`,'sort_order'],
+        ['Enabled',r=>`<button class="gc-toggle" data-id="${r.id}" data-enabled="${r.enabled?1:0}" style="${r.enabled?'background:#1f6e4a;color:#fff':'background:#6a2323;color:#ddd'}">${r.enabled?'✔️':'❌'}</button>`,'enabled'],
+        ['Delete',r=>`<button class="gc-del" data-id="${r.id}" style="background:#661111">刪除</button>`,'id'],
+      ])}
+    </div>`;
+  }
+  root.innerHTML=html;
+}
+// Gear CRUD handlers
+document.addEventListener('click', async e=>{
+  const seedBtn=e.target.closest('#gearSeedBtn');
+  if(seedBtn){
+    seedBtn.disabled=true; seedBtn.textContent='Seeding...';
+    try{
+      const gearList=[];
+      // Extract gear from manifest.json... we'll send sets & pieces inline
+      const manifest=await fetch('/assets/avatar-renders/gear-manifest.json').then(r=>r.json()).catch(()=>({}));
+      const seen=new Set();
+      for(const v of (manifest.viewers||[])){
+        for(const p of Object.values(v.platforms||{})){
+          for(const item of (p.owned||[])){
+            const key=item.set+'|'+item.piece;
+            if(seen.has(key)) continue;
+            seen.add(key);
+            gearList.push({gear_set:item.set, set_label:item.set_label||'', gear_piece:item.piece, label:item.label, price:0, sort_order:0});
+          }
+        }
+      }
+      if(!gearList.length) throw new Error('No gears found in manifest');
+      const r=await fetch(`${API}/admin/gear-catalog/seed`,{method:'POST',credentials:'include',headers:{'content-type':'application/json'},body:JSON.stringify({gears:gearList})});
+      const j=await r.json();
+      if(!r.ok||!j.ok) throw new Error(j.error||`HTTP ${r.status}`);
+      alert(`Seeding 完成：新增 ${j.added} 件，跳過 ${j.skipped} 件`);
+      loadGearCatalog();
+    }catch(e){alert('Seed 失敗：'+e.message);}
+    seedBtn.disabled=false; seedBtn.textContent='從 Manifest Seed';
+    return;
+  }
+  const toggleBtn=e.target.closest('.gc-toggle');
+  if(toggleBtn){
+    const id=Number(toggleBtn.dataset.id);
+    const enabled=toggleBtn.dataset.enabled==='1'?0:1;
+    toggleBtn.disabled=true;
+    try{
+      const r=await fetch(`${API}/admin/gear-catalog/${id}`,{method:'PUT',credentials:'include',headers:{'content-type':'application/json'},body:JSON.stringify({enabled})});
+      const j=await r.json();
+      if(!r.ok||!j.ok) throw new Error(j.error||`HTTP ${r.status}`);
+      loadGearCatalog();
+    }catch(e){alert('切換失敗：'+e.message);toggleBtn.disabled=false;}
+    return;
+  }
+  const delBtn=e.target.closest('.gc-del');
+  if(delBtn&&confirm('軟刪除此 gear？')){
+    const id=Number(delBtn.dataset.id);
+    delBtn.disabled=true;
+    try{
+      const r=await fetch(`${API}/admin/gear-catalog/${id}`,{method:'DELETE',credentials:'include',headers:{'content-type':'application/json'}});
+      const j=await r.json();
+      if(!r.ok||!j.ok) throw new Error(j.error||`HTTP ${r.status}`);
+      loadGearCatalog();
+    }catch(e){alert('刪除失敗：'+e.message);delBtn.disabled=false;}
+    return;
+  }
+  const addBtn=e.target.closest('#gcAddBtn');
+  if(addBtn){
+    const gearSet=document.getElementById('gcNewSet')?.value?.trim();
+    const setLabel=document.getElementById('gcNewSetLabel')?.value?.trim();
+    const gearPiece=document.getElementById('gcNewPiece')?.value?.trim();
+    const label=document.getElementById('gcNewLabel')?.value?.trim();
+    const price=Number(document.getElementById('gcNewPrice')?.value||0);
+    const sort_order=Number(document.getElementById('gcNewSort')?.value||0);
+    if(!gearSet||!gearPiece||!label){alert('Set、Piece、Label 必填');return;}
+    addBtn.disabled=true;
+    try{
+      const r=await fetch(`${API}/admin/gear-catalog`,{method:'POST',credentials:'include',headers:{'content-type':'application/json'},body:JSON.stringify({gear_set:gearSet, set_label:setLabel, gear_piece:gearPiece, label, price, sort_order})});
+      const j=await r.json();
+      if(!r.ok||!j.ok) throw new Error(j.error||`HTTP ${r.status}`);
+      document.getElementById('gcNewPiece').value='';
+      document.getElementById('gcNewLabel').value='';
+      loadGearCatalog();
+    }catch(e){alert('新增失敗：'+e.message);}
+    addBtn.disabled=false;
+    return;
+  }
+});
+// Inline edit: save on blur/enter
+document.addEventListener('change', async e=>{
+  const inp=e.target.closest('.gc-edit');
+  if(!inp) return;
+  const id=Number(inp.dataset.id);
+  const field=inp.dataset.field;
+  const value=inp.value?.trim?.()??inp.value;
+  inp.disabled=true;
+  try{
+    const body={[field]:field==='price'||field==='sort_order'?Number(value):value};
+    const r=await fetch(`${API}/admin/gear-catalog/${id}`,{method:'PUT',credentials:'include',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+    const j=await r.json();
+    if(!r.ok||!j.ok) throw new Error(j.error||`HTTP ${r.status}`);
+  }catch(e){alert('更新失敗：'+e.message);}
+  inp.disabled=false;
+});
+// Load gear catalog on page open
+document.addEventListener('gearCatalogCard', ()=>loadGearCatalog(), {once:true});
+setTimeout(()=>loadGearCatalog(),500);
 </script></body></html>

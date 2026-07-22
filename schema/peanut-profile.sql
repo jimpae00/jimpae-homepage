@@ -155,6 +155,21 @@ CREATE TABLE IF NOT EXISTS pending_avatar_gear_changes (
 CREATE INDEX IF NOT EXISTS idx_pending_avatar_gear_changes_status
 ON pending_avatar_gear_changes(status, id);
 
+CREATE TABLE IF NOT EXISTS gear_catalog (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  gear_set TEXT NOT NULL,
+  set_label TEXT,
+  gear_piece TEXT NOT NULL,
+  label TEXT NOT NULL,
+  price INTEGER NOT NULL DEFAULT 0,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(gear_set, gear_piece)
+);
+CREATE INDEX IF NOT EXISTS idx_gear_catalog_enabled ON gear_catalog(enabled, sort_order);
+
 CREATE TABLE IF NOT EXISTS twitch_sub_entitlements (
   twitch_user_id TEXT PRIMARY KEY,
   is_subscriber INTEGER NOT NULL DEFAULT 0,

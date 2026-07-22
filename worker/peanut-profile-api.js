@@ -17,6 +17,11 @@ export default {
       if (url.pathname === '/admin/sync' && request.method === 'POST') return await adminSync(request, env);
       if (url.pathname === '/admin/status-sync' && request.method === 'POST') return await adminStatusSync(request, env);
       if (url.pathname === '/profile/admin/status' && request.method === 'GET') return await profileAdminStatus(request, env);
+      if (url.pathname === '/admin/gear-catalog' && request.method === 'GET') return await adminGearCatalogList(request, env);
+      if (url.pathname === '/admin/gear-catalog' && request.method === 'POST') return await adminGearCatalogCreate(request, env);
+      if (url.pathname.match(/^\/admin\/gear-catalog\/\d+\/?$/) && request.method === 'PUT') return await adminGearCatalogUpdate(request, env);
+      if (url.pathname.match(/^\/admin\/gear-catalog\/\d+\/?$/) && request.method === 'DELETE') return await adminGearCatalogDelete(request, env);
+      if (url.pathname === '/admin/gear-catalog/seed' && request.method === 'POST') return await adminGearCatalogSeed(request, env);
       if (url.pathname === '/admin/pending-discord-links' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_discord_links');
       if (url.pathname === '/admin/pending-discord-links/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_discord_links');
       if (url.pathname === '/admin/pending-youtube-links' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_youtube_links');
@@ -160,6 +165,99 @@ async function adminAckLinks(request, env, table) {
   const status = body.status === 'failed' ? 'failed' : 'applied';
   for (const id of ids) await env.DB.prepare(`UPDATE ${table} SET status=?, applied_at=? WHERE id=?`).bind(status, new Date().toISOString(), id).run();
   return json({ ok: true, ids, status });
+}
+
+/* ───────── Gear Catalog Admin ───────── */
+
+async function adminGearCatalogList(request, env) {
+  const auth = await requireProfileAdmin(request, env);
+  if (!auth.ok) return auth.response;
+  const { searchParams } = new URL(request.url);
+  const enabledOnly = searchParams.get('enabled') === '1';
+  const sql = enabledOnly
+    ? 'SELECT * FROM gear_catalog WHERE enabled=1 ORDER BY sort_order, gear_set, gear_piece'
+    : 'SELECT * FROM gear_catalog ORDER BY sort_order, gear_set, gear_piece';
+  const rows = await env.DB.prepare(sql).all();
+  return json({ ok: true, gears: rows.results || [] });
+}
+
+async function adminGearCatalogCreate(request, env) {
+  const auth = await requireProfileAdmin(request, env);
+  if (!auth.ok) return auth.response;
+  const body = await request.json().catch(() => ({}));
+  const gearSet = String(body.gear_set || '').trim();
+  const gearPiece = String(body.gear_piece || '').trim();
+  const label = String(body.label || '').trim();
+  if (!gearSet || !gearPiece || !label) return json({ ok: false, error: 'gear_set, gear_piece, label required' }, 400);
+  if (gearSet.length > 80 || gearPiece.length > 120 || label.length > 200) return json({ ok: false, error: 'field too long' }, 400);
+  const setLabel = String(body.set_label || '').trim().slice(0, 200);
+  const price = Number.isFinite(Number(body.price)) ? Math.max(0, Number(body.price)) : 0;
+  const sortOrder = Number.isFinite(Number(body.sort_order)) ? Math.floor(Number(body.sort_order)) : 0;
+  const now = new Date().toISOString();
+  try {
+    const res = await env.DB.prepare(
+      'INSERT INTO gear_catalog (gear_set, set_label, gear_piece, label, price, enabled, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?)'
+    ).bind(gearSet, setLabel || null, gearPiece, label, price, sortOrder, now, now).run();
+    return json({ ok: true, id: res?.meta?.last_row_id || null });
+  } catch (e) {
+    if (e.message && e.message.includes('UNIQUE constraint')) return json({ ok: false, error: 'gear_set + gear_piece already exists' }, 409);
+    throw e;
+  }
+}
+
+async function adminGearCatalogUpdate(request, env) {
+  const auth = await requireProfileAdmin(request, env);
+  if (!auth.ok) return auth.response;
+  const id = parseInt(request.url.split('/').filter(Boolean).pop(), 10);
+  if (!Number.isFinite(id)) return json({ ok: false, error: 'invalid id' }, 400);
+  const body = await request.json().catch(() => ({}));
+  const fields = [];
+  const values = [];
+  for (const [k, v] of Object.entries({ set_label: body.set_label, label: body.label, gear_set: body.gear_set, gear_piece: body.gear_piece })) {
+    if (v !== undefined) { fields.push(k+'=?'); values.push(String(v).trim().slice(0, 200)); }
+  }
+  if (body.price !== undefined) { fields.push('price=?'); values.push(Math.max(0, Math.floor(Number(body.price)))); }
+  if (body.sort_order !== undefined) { fields.push('sort_order=?'); values.push(Math.floor(Number(body.sort_order))); }
+  if (body.enabled !== undefined) { fields.push('enabled=?'); values.push(body.enabled ? 1 : 0); }
+  if (!fields.length) return json({ ok: false, error: 'no fields to update' }, 400);
+  fields.push('updated_at=?');
+  values.push(new Date().toISOString());
+  values.push(id);
+  await env.DB.prepare(`UPDATE gear_catalog SET ${fields.join(',')} WHERE id=?`).bind(...values).run();
+  return json({ ok: true });
+}
+
+async function adminGearCatalogDelete(request, env) {
+  const auth = await requireProfileAdmin(request, env);
+  if (!auth.ok) return auth.response;
+  const id = parseInt(request.url.split('/').filter(Boolean).pop(), 10);
+  if (!Number.isFinite(id)) return json({ ok: false, error: 'invalid id' }, 400);
+  const param = new URL(request.url).searchParams.get('hard');
+  if (param === '1') {
+    await env.DB.prepare('DELETE FROM gear_catalog WHERE id=?').bind(id).run();
+  } else {
+    await env.DB.prepare("UPDATE gear_catalog SET enabled=0, updated_at=? WHERE id=?").bind(new Date().toISOString(), id).run();
+  }
+  return json({ ok: true });
+}
+
+async function adminGearCatalogSeed(request, env) {
+  const auth = await requireProfileAdmin(request, env);
+  if (!auth.ok) return auth.response;
+  const body = await request.json().catch(() => ({}));
+  const gears = Array.isArray(body.gears) ? body.gears : [];
+  let added = 0, skipped = 0;
+  const now = new Date().toISOString();
+  for (const g of gears) {
+    if (!g.gear_set || !g.gear_piece || !g.label) continue;
+    const existing = await env.DB.prepare('SELECT id FROM gear_catalog WHERE gear_set=? AND gear_piece=?').bind(g.gear_set, g.gear_piece).first();
+    if (existing) { skipped++; continue; }
+    await env.DB.prepare(
+      'INSERT INTO gear_catalog (gear_set, set_label, gear_piece, label, price, enabled, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?)'
+    ).bind(g.gear_set, g.set_label || null, g.gear_piece, g.label, Math.floor(Number(g.price) || 0), Math.floor(Number(g.sort_order) || 0), now, now).run();
+    added++;
+  }
+  return json({ ok: true, added, skipped });
 }
 
 async function twitchLogin(request, url, env) {
@@ -496,7 +594,7 @@ function cors(resp, request) {
   else headers.set('access-control-allow-origin', 'https://jimpae.info');
   headers.set('access-control-allow-credentials', 'true');
   headers.set('access-control-allow-headers', 'content-type, authorization');
-  headers.set('access-control-allow-methods', 'GET, POST, OPTIONS');
+  headers.set('access-control-allow-methods', 'GET, POST, PUT, DELETE, OPTIONS');
   return new Response(resp.body, { status: resp.status, statusText: resp.statusText, headers });
 }
 function randomHex(bytes) { const a = new Uint8Array(bytes); crypto.getRandomValues(a); return [...a].map(b => b.toString(16).padStart(2, '0')).join(''); }
