@@ -127,6 +127,15 @@ async function loadGearCatalog(){
 function renderGearCatalog(gears){
   const root=document.getElementById('gearCatalogRoot');
   if(!root) return;
+  // Save add-form state before re-render
+  const saved = {
+    set: document.getElementById('gcNewSet')?.value||'',
+    setLabel: document.getElementById('gcNewSetLabel')?.value||'',
+    piece: document.getElementById('gcNewPiece')?.value||'',
+    label: document.getElementById('gcNewLabel')?.value||'',
+    price: document.getElementById('gcNewPrice')?.value||'0',
+    sort: document.getElementById('gcNewSort')?.value||'0',
+  };
   // Group by set for collapsible sections
   const bySet={};
   for(const g of gears){
@@ -171,6 +180,14 @@ function renderGearCatalog(gears){
     </div>`;
   }
   root.innerHTML=html;
+  // Restore add-form state after re-render
+  const setEl = document.getElementById('gcNewSet');
+  if (setEl) { setEl.value = saved.set;
+    document.getElementById('gcNewSetLabel').value = saved.setLabel;
+    document.getElementById('gcNewPiece').value = saved.piece;
+    document.getElementById('gcNewLabel').value = saved.label;
+    document.getElementById('gcNewPrice').value = saved.price;
+    document.getElementById('gcNewSort').value = saved.sort; }
 }
 // Gear CRUD handlers
 document.addEventListener('click', async e=>{
