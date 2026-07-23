@@ -241,8 +241,6 @@ document.addEventListener('click', async e=>{
       const r=await fetch(`${API}/admin/gear-catalog`,{method:'POST',credentials:'include',headers:{'content-type':'application/json'},body:JSON.stringify({gear_set:gearSet, set_label:setLabel, gear_piece:gearPiece, label, price, sort_order})});
       const j=await r.json();
       if(!r.ok||!j.ok) throw new Error(j.error||`HTTP ${r.status}`);
-      document.getElementById('gcNewPiece').value='';
-      document.getElementById('gcNewLabel').value='';
       loadGearCatalog();
     }catch(e){alert('新增失敗：'+e.message);}
     addBtn.disabled=false;
