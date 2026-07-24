@@ -23,6 +23,7 @@ export default {
       if (url.pathname.match(/^\/admin\/gear-catalog\/\d+\/?$/) && request.method === 'DELETE') return await adminGearCatalogDelete(request, env);
       if (url.pathname === '/admin/gear-catalog/seed' && request.method === 'POST') return await adminGearCatalogSeed(request, env);
       if (url.pathname === '/admin/gear-catalog-sync' && request.method === 'GET') return await adminGearCatalogSync(request, env);
+      if (url.pathname === '/gear-catalog' && request.method === 'GET') return await publicGearCatalog(request, env);
       if (url.pathname === '/admin/pending-discord-links' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_discord_links');
       if (url.pathname === '/admin/pending-discord-links/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_discord_links');
       if (url.pathname === '/admin/pending-youtube-links' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_youtube_links');
@@ -272,6 +273,18 @@ async function adminGearCatalogSync(request, env) {
     gear_piece: r.gear_piece,
     cost: r.price,
     gift_only: false,
+  }));
+  return json({ ok: true, gears });
+}
+
+async function publicGearCatalog(request, env) {
+  const rows = await env.DB.prepare('SELECT gear_set, gear_piece, label, price FROM gear_catalog WHERE enabled=1 ORDER BY sort_order, gear_set, gear_piece').all();
+  const gears = (rows.results || []).map(r => ({
+    id: r.gear_piece.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+    display_name: r.label,
+    gear_set: r.gear_set,
+    gear_piece: r.gear_piece,
+    cost: r.price,
   }));
   return json({ ok: true, gears });
 }
