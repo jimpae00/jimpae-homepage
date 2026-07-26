@@ -134,7 +134,7 @@
         const j = await res.json();
         if(!res.ok||!j.ok) throw new Error(j.error||`HTTP ${res.status}`);
         if(!j.gears||!j.gears.length){ grid.innerHTML='<div style="grid-column:1/-1;color:var(--muted)">暫無可購買裝備</div>'; return; }
-        grid.innerHTML = j.gears.map(g => `<article class="panel gear-launch-card"><h3>${escapeHtml(g.display_name)}</h3><p><strong>指令：</strong><code>!buygear ${escapeHtml(g.id)}</code></p><p><strong>價錢：</strong>${g.cost} 占幣</p></article>`).join('');
+        grid.innerHTML = j.gears.map(g => `<article class="panel gear-launch-card"><img src="assets/gear-renders/${escapeHtml(g.id)}-goblin-preview.png" alt="" loading="lazy" style="width:55px;height:55px;object-fit:contain;align-self:center;image-rendering:auto" onerror="this.style.display='none'" /><h3>${escapeHtml(g.display_name)}</h3><p><strong>指令：</strong><code>!buygear ${escapeHtml(g.id)}</code></p><p><strong>價錢：</strong>${g.cost} 占幣</p></article>`).join('');
       }catch(e){
         grid.innerHTML = `<div style="grid-column:1/-1;color:var(--warn)">載入裝備失敗：${escapeHtml(e.message)}</div>`;
       }
