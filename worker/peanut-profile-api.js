@@ -51,7 +51,7 @@ export default {
       if (memberPlaybackMatch && request.method === 'POST') return await profileMemberVideoPlayback(request, memberPlaybackMatch[1], env);
       if (url.pathname === '/profile/unlink' && request.method === 'POST') return await profileUnlink(request, env);
       if (url.pathname === '/profile/test-deduct' && request.method === 'POST') return await profileTestDeduct(request, env);
-      if (url.pathname === '/profile/redeem-s57' && request.method === 'POST') return await profileRedeemS57(request, env);
+      if (url.pathname === '/profile/redeem-s58' && request.method === 'POST') return await profileRedeemS57(request, env);
       if (url.pathname === '/profile/equip-gear' && request.method === 'POST') return await profileEquipGear(request, env);
       if (url.pathname === '/profile/logout' && request.method === 'POST') return cors(new Response(JSON.stringify({ ok: true }), { headers: { ...JSON_HEADERS, 'set-cookie': sessionCookie('', 0) } }), request);
       return json({ ok: false, error: 'not found' }, 404);
@@ -463,18 +463,18 @@ async function youtubeCallback(request, url, env) {
 
 
 
-async function profileRedeemS57(request, env) {
+async function profileRedeemS58(request, env) {
   const session = await getSession(request, env);
   if (!session) return json({ ok: false, error: 'not logged in' }, 401);
   const { where, value } = identityWhere(session);
   if (!where) return json({ ok: false, error: 'no identity' }, 401);
   const profile = await env.DB.prepare(`SELECT * FROM viewer_profiles_v2 WHERE ${where}=?`).bind(value).first();
   if (!profile) return json({ ok: false, error: 'profile not found' }, 404);
-  const owned = await env.DB.prepare('SELECT 1 FROM peanut_ownerships_v2 WHERE viewer_id=? AND season_number=57 LIMIT 1').bind(Number(profile.viewer_id)).first();
-  if (owned) return json({ ok: false, error: '你已經有 S57 花生證。', code: 'already_owned' }, 409);
+  const owned = await env.DB.prepare('SELECT 1 FROM peanut_ownerships_v2 WHERE viewer_id=? AND season_number=58 LIMIT 1').bind(Number(profile.viewer_id)).first();
+  if (owned) return json({ ok: false, error: '你已經有 S58 花生證。', code: 'already_owned' }, 409);
   const points = Number(profile.points || 0);
   if (points < 1000) return json({ ok: false, error: '占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。', code: 'insufficient_points', points, cost: 1000 }, 402);
-  const existing = await env.DB.prepare("SELECT id FROM pending_peanut_redeems WHERE viewer_id=? AND season_number=57 AND status='pending' LIMIT 1").bind(Number(profile.viewer_id)).first();
+  const existing = await env.DB.prepare("SELECT id FROM pending_peanut_redeems WHERE viewer_id=? AND season_number=58 AND status='pending' LIMIT 1").bind(Number(profile.viewer_id)).first();
   if (existing) return json({ ok: true, status: 'pending', id: existing.id, season_number: 57, cost: 1000 });
   const res = await env.DB.prepare(`
     INSERT INTO pending_peanut_redeems
