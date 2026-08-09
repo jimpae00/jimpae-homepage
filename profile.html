@@ -527,7 +527,7 @@
       $('loginBtn').classList.remove('hidden');
       $('youtubeBtn').classList.remove('hidden');
       $('discordBtn').classList.toggle('hidden', !!profile.discord_linked || !!data.discord_pending);
-      const ownsS58 = (data.seasons || []).some(s => Number(s.season_number) === 57);
+      const ownsS58 = (data.seasons || []).some(s => Number(s.season_number) === 58);
       $('redeemS58Btn').classList.toggle('hidden', ownsS58 || Number(profile.points || 0) < 1000);
       $('redeemS58Btn').disabled = false;
       $('redeemS58Btn').textContent = '兌換 S58 花生證（1000 占幣）';
@@ -542,7 +542,7 @@
       const discord = profile.discord_linked ? '<span class="ok">已連結</span>' : (data.discord_pending ? '<span class="warn">連結處理中</span>' : '<span class="warn">未連結</span>');
       const synced = profile.last_synced_at ? new Date(profile.last_synced_at).toLocaleString('zh-HK', {hour12:false}) : '未有同步時間';
       const pts = profile.points != null ? `${Number(profile.points).toLocaleString()} 占幣${profile.points_rank ? ` · #${profile.points_rank}` : ''}` : '未見到';
-      const ownsS58Pre = (data.seasons || []).some(s => Number(s.season_number) === 57);
+      const ownsS58Pre = (data.seasons || []).some(s => Number(s.season_number) === 58);
       const ptsHint = profile.points == null ? '<div class="muted" style="font-size:12px;margin-top:4px">排行榜未同步，或 Twitch/YouTube 名稱未 match。</div>' : (Number(profile.points || 0) < 1000 && !ownsS58Pre ? '<div class="muted" style="font-size:12px;margin-top:4px">占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。</div>' : '');
       const avatarBase = `https://jimpae.info/assets/avatar-renders/viewer-${Number(profile.viewer_id)}`;
       const avatarOptions = [];
