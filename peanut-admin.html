@@ -47,10 +47,12 @@ function viewerMatches(v,q){
  return [v.viewer_id,v.twitch_user_id,v.twitch_login,v.twitch_display_name,v.youtube_channel_id,v.youtube_handle,v.youtube_display_name,v.discord_user_id,v.discord_username].some(x=>norm(x).includes(q));
 }
 function viewerSearchHtml(d){
- const q=viewerSearch?.value||''; if(!q.trim()) return '';
- const matches=(d.viewers||[]).filter(v=>viewerMatches(v,q)).slice(0,20);
- if(!matches.length) return `<div class="card"><h2>Viewer Search</h2><p class="warn">搵唔到：${esc(q)}</p></div>`;
- const cards=matches.map(v=>{
+  const q=viewerSearch?.value||''; if(!q.trim()) return '';
+  const matches=(d.viewers||[]).filter(v=>viewerMatches(v,q)).slice(0,20);
+  const lbMatches=(d.leaderboard_search||[]).filter(v=>[v.name,v.username,v.user_id,v.platform].some(x=>norm(x).includes(norm(q)))).slice(0,20);
+  if(!matches.length && !lbMatches.length) return `<div class="card"><h2>Viewer Search</h2><p class="warn">搵唔到：${esc(q)}</p></div>`;
+  if(!matches.length) return `<div class="card"><h2>Viewer Search</h2><p class="muted">搵到 leaderboard identity，但未有 Peanut Profile：</p>${lbMatches.map(v=>`<p><strong>${esc(v.name||v.username||'—')}</strong> <span class="muted">@${esc(v.username||'—')}｜${esc(v.platform||'')}｜${esc(v.points||0)} PTS</span></p>`).join('')}</div>`;
+  const cards=matches.map(v=>{
    const vid=Number(v.viewer_id);
    const s58=(d.s58_redeems||[]).filter(r=>Number(r.viewer_id)===vid);
    const pts=(d.points_redeems||[]).filter(r=>norm(r.platform_user_id)===norm(v.twitch_user_id)||norm(r.platform_login)===norm(v.twitch_login));
