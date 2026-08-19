@@ -78,10 +78,18 @@
       const labels={0:'星期日',2:'星期二',4:'星期四'};
       nextStream.textContent = add===0 ? '今晚' : labels[(todayIdx+add)%7];
     }
+    const publicAliases = {
+      yukili030: ['hkeggtart030'],
+      hkeggtart030: ['yukili030'],
+    };
+    function searchableNames(p){
+      const key = norm(p.username);
+      return [p.name, p.username, ...(p.aliases || []), ...(publicAliases[key] || [])].map(norm);
+    }
     function updateSearch(){
       const q = norm($('search').value);
       if(!q){ renderResult(state.entries[0]); renderBoard(state.entries); return; }
-      const matches = state.entries.filter(p => norm(p.name).includes(q) || norm(p.username).includes(q));
+      const matches = state.entries.filter(p => searchableNames(p).some(name => name.includes(q)));
       renderResult(matches[0]); renderBoard(matches.length ? matches : state.entries);
       $('boardSub').textContent = matches.length ? `搜尋結果：${matches.length} 人` : 'Top players';
     }
