@@ -51,12 +51,18 @@ export default {
       if (memberPlaybackMatch && request.method === 'POST') return await profileMemberVideoPlayback(request, memberPlaybackMatch[1], env);
       if (url.pathname === '/profile/unlink' && request.method === 'POST') return await profileUnlink(request, env);
       if (url.pathname === '/profile/test-deduct' && request.method === 'POST') return await profileTestDeduct(request, env);
-      if (url.pathname === '/profile/redeem-s58' && request.method === 'POST') return await profileRedeemS57(request, env);
+      if (url.pathname === '/profile/redeem-s58' && request.method === 'POST') return await profileRedeemS58(request, env);
       if (url.pathname === '/profile/equip-gear' && request.method === 'POST') return await profileEquipGear(request, env);
       if (url.pathname === '/profile/logout' && request.method === 'POST') return cors(new Response(JSON.stringify({ ok: true }), { headers: { ...JSON_HEADERS, 'set-cookie': sessionCookie('', 0) } }), request);
       return json({ ok: false, error: 'not found' }, 404);
     } catch (err) {
-      return json({ ok: false, error: String(err && err.message ? err.message : err) }, 500);
+      const message = String(err && err.message ? err.message : err);
+      // D1 quota is an operational condition, not an opaque server failure.
+      // Keep the response machine-readable so clients and sync daemons can back off.
+      if (/D1_ERROR.*(free tier|row write limit|limit)/i.test(message)) {
+        return json({ ok: false, code: 'd1_quota_exceeded', error: message, retry: 'after_midnight_utc' }, 503);
+      }
+      return json({ ok: false, error: message }, 500);
     }
   },
 };
@@ -101,40 +107,117 @@ async function adminSync(request, env) {
   const auth = requireAdmin(request, env);
   if (!auth.ok) return auth.response;
   const payload = await request.json();
-  const viewers = Array.isArray(payload.viewers) ? payload.viewers : [];
-  const ownerships = Array.isArray(payload.ownerships) ? payload.ownerships : [];
+  // Backward compat: legacy payloads (no is_full) are full snapshots.
+  // Default to full unless explicitly is_full === false.
+  const isFull = payload.is_full !== false;
+
+  if (isFull) {
+    // --- Full snapshot: replace-all (existing behavior) ---
+    // Legacy daemon sends {viewers, ownerships}; new daemon sends changed_* + is_full.
+    const viewers = Array.isArray(payload.changed_viewers) ? payload.changed_viewers : (Array.isArray(payload.viewers) ? payload.viewers : []);
+    const ownerships = Array.isArray(payload.changed_ownerships) ? payload.changed_ownerships : (Array.isArray(payload.ownerships) ? payload.ownerships : []);
+    const syncedAt = payload.synced_at || new Date().toISOString();
+
+    await env.DB.batch([
+      env.DB.prepare('DELETE FROM peanut_ownerships_v2'),
+      env.DB.prepare('DELETE FROM viewer_profiles_v2'),
+    ]);
+
+    const viewerStmt = env.DB.prepare(`
+      INSERT OR REPLACE INTO viewer_profiles_v2
+      (viewer_id, twitch_user_id, twitch_login, twitch_display_name, youtube_channel_id, youtube_handle, youtube_display_name, discord_user_id, discord_username, discord_linked, points, points_rank, points_platform, avatar_render_url, last_synced_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const ownershipStmt = env.DB.prepare('INSERT OR REPLACE INTO peanut_ownerships_v2 (viewer_id, season_number, source_platform, created_at) VALUES (?, ?, ?, ?)');
+
+    for (let i = 0; i < viewers.length; i += 100) {
+      const batch = viewers.slice(i, i + 100).filter(v => v.viewer_id).map(v => viewerStmt.bind(
+        Number(v.viewer_id), v.twitch_user_id || null, v.twitch_login || null, v.twitch_display_name || null,
+        v.youtube_channel_id || null, v.youtube_handle || null, v.youtube_display_name || null,
+        v.discord_user_id || null, v.discord_username || null, v.discord_linked ? 1 : 0,
+        v.points ?? null, v.points_rank ?? null, v.points_platform || null, v.avatar_render_url || null, syncedAt,
+      ));
+      if (batch.length) await env.DB.batch(batch);
+    }
+
+    for (let i = 0; i < ownerships.length; i += 100) {
+      const batch = ownerships.slice(i, i + 100).filter(o => o.viewer_id && o.season_number).map(o => ownershipStmt.bind(
+        Number(o.viewer_id), Number(o.season_number), o.source_platform || null, o.created_at || null,
+      ));
+      if (batch.length) await env.DB.batch(batch);
+    }
+
+    return json({ ok: true, viewers: viewers.length, ownerships: ownerships.length, synced_at: syncedAt });
+  }
+
+  // --- Diff mode: UPSERT changed rows + DELETE removed rows ---
+  const changedViewers = Array.isArray(payload.changed_viewers) ? payload.changed_viewers : [];
+  const changedOwnerships = Array.isArray(payload.changed_ownerships) ? payload.changed_ownerships : [];
+  const deletedViewerIds = Array.isArray(payload.deleted_viewer_ids) ? payload.deleted_viewer_ids : [];
+  const deletedOwnershipIds = Array.isArray(payload.deleted_ownership_ids) ? payload.deleted_ownership_ids : [];
   const syncedAt = payload.synced_at || new Date().toISOString();
 
-  await env.DB.batch([
-    env.DB.prepare('DELETE FROM peanut_ownerships_v2'),
-    env.DB.prepare('DELETE FROM viewer_profiles_v2'),
-  ]);
-
-  const viewerStmt = env.DB.prepare(`
-    INSERT OR REPLACE INTO viewer_profiles_v2
-    (viewer_id, twitch_user_id, twitch_login, twitch_display_name, youtube_channel_id, youtube_handle, youtube_display_name, discord_user_id, discord_username, discord_linked, points, points_rank, points_platform, avatar_render_url, last_synced_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-  const ownershipStmt = env.DB.prepare('INSERT OR REPLACE INTO peanut_ownerships_v2 (viewer_id, season_number, source_platform, created_at) VALUES (?, ?, ?, ?)');
-
-  for (let i = 0; i < viewers.length; i += 100) {
-    const batch = viewers.slice(i, i + 100).filter(v => v.viewer_id).map(v => viewerStmt.bind(
-      Number(v.viewer_id), v.twitch_user_id || null, v.twitch_login || null, v.twitch_display_name || null,
-      v.youtube_channel_id || null, v.youtube_handle || null, v.youtube_display_name || null,
-      v.discord_user_id || null, v.discord_username || null, v.discord_linked ? 1 : 0,
-      v.points ?? null, v.points_rank ?? null, v.points_platform || null, v.avatar_render_url || null, syncedAt,
-    ));
-    if (batch.length) await env.DB.batch(batch);
+  // UPSERT changed viewers
+  if (changedViewers.length > 0) {
+    const viewerStmt = env.DB.prepare(`
+      INSERT OR REPLACE INTO viewer_profiles_v2
+      (viewer_id, twitch_user_id, twitch_login, twitch_display_name, youtube_channel_id, youtube_handle, youtube_display_name, discord_user_id, discord_username, discord_linked, points, points_rank, points_platform, avatar_render_url, last_synced_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    for (let i = 0; i < changedViewers.length; i += 100) {
+      const batch = changedViewers.slice(i, i + 100).filter(v => v.viewer_id).map(v => viewerStmt.bind(
+        Number(v.viewer_id), v.twitch_user_id || null, v.twitch_login || null, v.twitch_display_name || null,
+        v.youtube_channel_id || null, v.youtube_handle || null, v.youtube_display_name || null,
+        v.discord_user_id || null, v.discord_username || null, v.discord_linked ? 1 : 0,
+        v.points ?? null, v.points_rank ?? null, v.points_platform || null, v.avatar_render_url || null, syncedAt,
+      ));
+      if (batch.length) await env.DB.batch(batch);
+    }
   }
 
-  for (let i = 0; i < ownerships.length; i += 100) {
-    const batch = ownerships.slice(i, i + 100).filter(o => o.viewer_id && o.season_number).map(o => ownershipStmt.bind(
-      Number(o.viewer_id), Number(o.season_number), o.source_platform || null, o.created_at || null,
-    ));
-    if (batch.length) await env.DB.batch(batch);
+  // DELETE removed viewers
+  if (deletedViewerIds.length > 0) {
+    const stmts = deletedViewerIds.map(vid =>
+      env.DB.prepare('DELETE FROM viewer_profiles_v2 WHERE viewer_id = ?').bind(Number(vid))
+    );
+    await env.DB.batch(stmts);
   }
 
-  return json({ ok: true, viewers: viewers.length, ownerships: ownerships.length, synced_at: syncedAt });
+  // UPSERT changed ownerships
+  if (changedOwnerships.length > 0) {
+    const ownershipStmt = env.DB.prepare('INSERT OR REPLACE INTO peanut_ownerships_v2 (viewer_id, season_number, source_platform, created_at) VALUES (?, ?, ?, ?)');
+    for (let i = 0; i < changedOwnerships.length; i += 100) {
+      const batch = changedOwnerships.slice(i, i + 100).filter(o => o.viewer_id && o.season_number).map(o => ownershipStmt.bind(
+        Number(o.viewer_id), Number(o.season_number), o.source_platform || null, o.created_at || null,
+      ));
+      if (batch.length) await env.DB.batch(batch);
+    }
+  }
+
+  // DELETE removed ownerships (format: "viewer_id:season_number")
+  if (deletedOwnershipIds.length > 0) {
+    const stmts = [];
+    for (const key of deletedOwnershipIds) {
+      const parts = key.split(':');
+      if (parts.length >= 2) {
+        const vid = Number(parts[0]);
+        const season = Number(parts[1]);
+        if (!isNaN(vid) && !isNaN(season)) {
+          stmts.push(env.DB.prepare('DELETE FROM peanut_ownerships_v2 WHERE viewer_id = ? AND season_number = ?').bind(vid, season));
+        }
+      }
+    }
+    if (stmts.length) await env.DB.batch(stmts);
+  }
+
+  return json({
+    ok: true,
+    changed_viewers: changedViewers.length,
+    changed_ownerships: changedOwnerships.length,
+    deleted_viewer_ids: deletedViewerIds.length,
+    deleted_ownership_ids: deletedOwnershipIds.length,
+    synced_at: syncedAt,
+  });
 }
 
 async function adminPendingLinks(request, env, table) {
@@ -475,13 +558,13 @@ async function profileRedeemS58(request, env) {
   const points = Number(profile.points || 0);
   if (points < 1000) return json({ ok: false, error: '占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。', code: 'insufficient_points', points, cost: 1000 }, 402);
   const existing = await env.DB.prepare("SELECT id FROM pending_peanut_redeems WHERE viewer_id=? AND season_number=58 AND status='pending' LIMIT 1").bind(Number(profile.viewer_id)).first();
-  if (existing) return json({ ok: true, status: 'pending', id: existing.id, season_number: 57, cost: 1000 });
+  if (existing) return json({ ok: true, status: 'pending', id: existing.id, season_number: 58, cost: 1000 });
   const res = await env.DB.prepare(`
     INSERT INTO pending_peanut_redeems
     (viewer_id, season_number, cost, session_provider, session_subject, status, created_at)
-    VALUES (?, 57, 1000, ?, ?, 'pending', ?)
+    VALUES (?, 58, 1000, ?, ?, 'pending', ?)
   `).bind(Number(profile.viewer_id), session.provider || null, value || null, new Date().toISOString()).run();
-  return json({ ok: true, status: 'pending', id: res?.meta?.last_row_id || null, season_number: 57, cost: 1000 });
+  return json({ ok: true, status: 'pending', id: res?.meta?.last_row_id || null, season_number: 58, cost: 1000 });
 }
 
 async function profileEquipGear(request, env) {
