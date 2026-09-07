@@ -32,7 +32,7 @@
         <a class="btn btn-primary" id="loginBtn" href="#">登入 Twitch</a>
         <a class="btn btn-primary hidden" id="discordBtn" href="#">連結 Discord</a>
         <a class="btn btn-primary" id="youtubeBtn" href="#">登入 YouTube</a>
-        <button class="btn btn-primary hidden" id="redeemS58Btn">兌換 S58 花生證（1000 占幣）</button>
+        <button class="btn btn-primary hidden" id="redeemS59Btn">兌換 S59 花生證（1000 占幣）</button>
         <button class="btn btn-ghost hidden" id="testDeductBtn">測試扣 100 占幣</button>
         <button class="btn btn-ghost hidden" id="logoutBtn">登出</button>
       </div>
@@ -172,14 +172,14 @@
       button.setAttribute('aria-expanded', open ? 'true' : 'false');
       if(open && card.querySelector('#gearBox')) renderGearPreviewCanvas().catch(()=>{});
     }
-    $('redeemS58Btn').addEventListener('click', async () => {
-      if(!confirm('兌換 S58 花生證？將扣 1000 占幣。')) return;
-      $('redeemS58Btn').disabled = true;
-      $('redeemS58Btn').textContent = '兌換處理中...';
-      const res = await fetch(`${API}/profile/redeem-s58`, {method:'POST', credentials:'include'});
+    $('redeemS59Btn').addEventListener('click', async () => {
+      if(!confirm('兌換 S59 花生證？將扣 1000 占幣。')) return;
+      $('redeemS59Btn').disabled = true;
+      $('redeemS59Btn').textContent = '兌換處理中...';
+      const res = await fetch(`${API}/profile/redeem-s59`, {method:'POST', credentials:'include'});
       const data = await res.json().catch(()=>({}));
-      if(!res.ok || !data.ok){ alert(data.error || `兌換失敗：HTTP ${res.status}`); $('redeemS58Btn').disabled=false; $('redeemS58Btn').textContent='兌換 S58 花生證（1000 占幣）'; return; }
-      alert('S58 花生證兌換已提交，等幾秒 refresh 會更新。');
+      if(!res.ok || !data.ok){ alert(data.error || `兌換失敗：HTTP ${res.status}`); $('redeemS59Btn').disabled=false; $('redeemS59Btn').textContent='兌換 S59 花生證（1000 占幣）'; return; }
+      alert('S59 花生證兌換已提交，等幾秒 refresh 會更新。');
     });
 
     $('testDeductBtn').addEventListener('click', async () => {
@@ -276,7 +276,7 @@
       $('loginBtn').classList.remove('hidden');
       $('youtubeBtn').classList.remove('hidden');
       $('discordBtn').classList.add('hidden');
-      $('redeemS58Btn').classList.add('hidden');
+      $('redeemS59Btn').classList.add('hidden');
       $('testDeductBtn').classList.add('hidden');
       $('logoutBtn').classList.add('hidden');
       $('accountBox').innerHTML = `<p class="muted">${escapeHtml(message)}</p>`;
@@ -544,10 +544,10 @@
       $('loginBtn').classList.remove('hidden');
       $('youtubeBtn').classList.remove('hidden');
       $('discordBtn').classList.toggle('hidden', !!profile.discord_linked || !!data.discord_pending);
-      const ownsS58 = (data.seasons || []).some(s => Number(s.season_number) === 58);
-      $('redeemS58Btn').classList.toggle('hidden', ownsS58 || Number(profile.points || 0) < 1000);
-      $('redeemS58Btn').disabled = false;
-      $('redeemS58Btn').textContent = '兌換 S58 花生證（1000 占幣）';
+      const ownsS59 = (data.seasons || []).some(s => Number(s.season_number) === 59);
+      $('redeemS59Btn').classList.toggle('hidden', ownsS59 || Number(profile.points || 0) < 1000);
+      $('redeemS59Btn').disabled = false;
+      $('redeemS59Btn').textContent = '兌換 S59 花生證（1000 占幣）';
       $('testDeductBtn').classList.toggle('hidden', Number(profile.viewer_id) !== 1);
       $('testDeductBtn').disabled = false;
       $('testDeductBtn').textContent = '測試扣 100 占幣';
@@ -560,8 +560,8 @@
       const synced = profile.last_synced_at ? new Date(profile.last_synced_at).toLocaleString('zh-HK', {hour12:false}) : '未有同步時間';
       window.currentProfileData = data;
       const pts = renderPointsChoice(data, profile);
-      const ownsS58Pre = (data.seasons || []).some(s => Number(s.season_number) === 58);
-      const ptsHint = profile.points == null ? '<div class="muted" style="font-size:12px;margin-top:4px">排行榜未同步，或 Twitch/YouTube 名稱未 match。</div>' : (Number(profile.points || 0) < 1000 && !ownsS58Pre ? '<div class="muted" style="font-size:12px;margin-top:4px">占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。</div>' : '');
+      const ownsS59Pre = (data.seasons || []).some(s => Number(s.season_number) === 59);
+      const ptsHint = profile.points == null ? '<div class="muted" style="font-size:12px;margin-top:4px">排行榜未同步，或 Twitch/YouTube 名稱未 match。</div>' : (Number(profile.points || 0) < 1000 && !ownsS59Pre ? '<div class="muted" style="font-size:12px;margin-top:4px">占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。</div>' : '');
       const avatarBase = `https://jimpae.info/assets/avatar-renders/viewer-${Number(profile.viewer_id)}`;
       const avatarOptions = [];
       if (profile.twitch_user_id) avatarOptions.push(['twitch', 'Twitch', `${avatarBase}-twitch.png`]);

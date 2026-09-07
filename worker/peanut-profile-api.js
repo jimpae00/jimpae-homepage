@@ -1,5 +1,5 @@
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
-const TWITCH_SCOPES = 'user:read:subscriptions';
+const TWITCH_SCOPES = 'user:read:subscriptions channel:read:redemptions';
 const YOUTUBE_SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
 const ALLOWED_ORIGINS = new Set([
   'https://jimpae.info',
@@ -14,6 +14,14 @@ export default {
     try {
       if (url.pathname === '/health') return json({ ok: true, service: 'peanut-profile-api', schema: 'viewer_id_v2' });
 
+      // Shadow mode only: receives a direct Twitch EventSub notification but
+      // never mutates StreamChat PTS. Streamer.bot remains the live writer.
+      if (url.pathname === '/webhooks/twitch/eventsub' && request.method === 'POST') return await twitchEventSubShadow(request, env);
+
+      if (url.pathname === '/admin/twitch-eventsub-shadow-init' && request.method === 'POST') return await adminInitTwitchEventSubShadow(request, env);
+      if (url.pathname === '/admin/twitch-eventsub-shadow-status' && request.method === 'GET') return await adminTwitchEventSubShadowStatus(request, env);
+      if (url.pathname === '/admin/twitch-eventsub-points' && request.method === 'GET') return await adminPendingTwitchEventSubPoints(request, env);
+      if (url.pathname === '/admin/twitch-eventsub-points/ack' && request.method === 'POST') return await adminAckTwitchEventSubPoints(request, env);
       if (url.pathname === '/admin/sync' && request.method === 'POST') return await adminSync(request, env);
       if (url.pathname === '/admin/status-sync' && request.method === 'POST') return await adminStatusSync(request, env);
       if (url.pathname === '/profile/admin/status' && request.method === 'GET') return await profileAdminStatus(request, env);
@@ -51,7 +59,7 @@ export default {
       if (memberPlaybackMatch && request.method === 'POST') return await profileMemberVideoPlayback(request, memberPlaybackMatch[1], env);
       if (url.pathname === '/profile/unlink' && request.method === 'POST') return await profileUnlink(request, env);
       if (url.pathname === '/profile/test-deduct' && request.method === 'POST') return await profileTestDeduct(request, env);
-      if (url.pathname === '/profile/redeem-s58' && request.method === 'POST') return await profileRedeemS58(request, env);
+      if (url.pathname === '/profile/redeem-s59' && request.method === 'POST') return await profileRedeemS59(request, env);
       if (url.pathname === '/profile/equip-gear' && request.method === 'POST') return await profileEquipGear(request, env);
       if (url.pathname === '/profile/logout' && request.method === 'POST') return cors(new Response(JSON.stringify({ ok: true }), { headers: { ...JSON_HEADERS, 'set-cookie': sessionCookie('', 0) } }), request);
       return json({ ok: false, error: 'not found' }, 404);
@@ -73,6 +81,146 @@ function requireAdmin(request, env) {
   const got = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
   if (got !== expected) return { ok: false, response: json({ ok: false, error: 'unauthorized' }, 401) };
   return { ok: true };
+}
+
+const PTS_REWARD_ID = '197e8768-c3bd-4d63-8040-a0ddc6c366e4';
+const PTS_EVENTSUB_TYPE = 'channel.channel_points_custom_reward_redemption.add';
+
+function constantTimeEquals(left, right) {
+  if (typeof left !== 'string' || typeof right !== 'string' || left.length !== right.length) return false;
+  let diff = 0;
+  for (let i = 0; i < left.length; i += 1) diff |= left.charCodeAt(i) ^ right.charCodeAt(i);
+  return diff === 0;
+}
+
+async function twitchEventSubSignatureValid(request, rawBody, env) {
+  const secret = env.TWITCH_EVENTSUB_SECRET;
+  const messageId = request.headers.get('twitch-eventsub-message-id') || '';
+  const timestamp = request.headers.get('twitch-eventsub-message-timestamp') || '';
+  const supplied = request.headers.get('twitch-eventsub-message-signature') || '';
+  if (!secret || !messageId || !timestamp || !supplied.startsWith('sha256=')) return false;
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(messageId + timestamp + rawBody));
+  const expected = 'sha256=' + [...new Uint8Array(signature)].map(b => b.toString(16).padStart(2, '0')).join('');
+  return constantTimeEquals(expected, supplied);
+}
+
+async function twitchEventSubShadow(request, env) {
+  const rawBody = await request.text();
+  if (!(await twitchEventSubSignatureValid(request, rawBody, env))) return json({ ok: false, error: 'invalid Twitch EventSub signature' }, 403);
+  const payload = JSON.parse(rawBody);
+  const messageType = request.headers.get('twitch-eventsub-message-type') || '';
+  if (messageType === 'webhook_callback_verification') {
+    return new Response(String(payload.challenge || ''), { status: 200, headers: { 'content-type': 'text/plain; charset=utf-8' } });
+  }
+  if (messageType !== 'notification') return json({ ok: true, status: 'ignored_message_type' });
+  const subscription = payload.subscription || {};
+  const event = payload.event || {};
+  if (subscription.type !== PTS_EVENTSUB_TYPE) return json({ ok: true, status: 'ignored_event_type' });
+  if (String(subscription.condition?.broadcaster_user_id || event.broadcaster_user_id || '') !== String(env.TWITCH_BROADCASTER_ID || '')) return json({ ok: true, status: 'ignored_broadcaster' });
+  if (String(event.reward?.id || '') !== PTS_REWARD_ID) return json({ ok: true, status: 'ignored_reward' });
+  if (!event.id || !event.user_id) return json({ ok: false, error: 'incomplete redemption event' }, 400);
+  const inserted = await env.DB.prepare(`
+    INSERT OR IGNORE INTO twitch_pts_eventsub_shadow
+      (event_id,broadcaster_user_id,reward_id,reward_title,twitch_user_id,twitch_login,twitch_display_name,reward_cost,status,raw_event,received_at)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?)
+  `).bind(
+    event.id, String(event.broadcaster_user_id || subscription.condition?.broadcaster_user_id || ''),
+    String(event.reward.id), String(event.reward.title || ''), String(event.user_id), String(event.user_login || ''),
+    String(event.user_name || ''), Number(event.reward.cost || 0), 'pending', rawBody, new Date().toISOString(),
+  ).run();
+  return json({ ok: true, status: inserted.meta?.changes ? 'pending' : 'duplicate', event_id: event.id });
+}
+
+async function ensureTwitchEventSubShadowSchema(env) {
+  await env.DB.batch([
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS twitch_pts_eventsub_shadow (
+      event_id TEXT PRIMARY KEY, broadcaster_user_id TEXT NOT NULL, reward_id TEXT NOT NULL,
+      reward_title TEXT, twitch_user_id TEXT NOT NULL, twitch_login TEXT, twitch_display_name TEXT,
+      reward_cost INTEGER, status TEXT NOT NULL DEFAULT 'shadow_received', raw_event TEXT NOT NULL, received_at TEXT NOT NULL
+    )`),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_twitch_pts_eventsub_shadow_received ON twitch_pts_eventsub_shadow(received_at DESC)'),
+  ]);
+}
+
+async function adminInitTwitchEventSubShadow(request, env) {
+  const auth = requireAdmin(request, env);
+  if (!auth.ok) return auth.response;
+  await ensureTwitchEventSubShadowSchema(env);
+  return json({ ok: true, status: 'shadow_schema_ready' });
+}
+
+async function twitchAppAccessToken(env) {
+  const tokenRes = await fetch('https://id.twitch.tv/oauth2/token', {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ client_id: env.TWITCH_CLIENT_ID, client_secret: env.TWITCH_CLIENT_SECRET, grant_type: 'client_credentials' }),
+  });
+  const tokenBody = await tokenRes.json().catch(() => ({}));
+  if (!tokenRes.ok || !tokenBody.access_token) throw new Error(`Twitch app token failed ${tokenRes.status}`);
+  return tokenBody.access_token;
+}
+
+async function adminTwitchEventSubShadowStatus(request, env) {
+  const auth = requireAdmin(request, env);
+  if (!auth.ok) return auth.response;
+  const token = await twitchAppAccessToken(env);
+  const endpoint = new URL('https://api.twitch.tv/helix/eventsub/subscriptions');
+  endpoint.searchParams.set('type', PTS_EVENTSUB_TYPE);
+  const response = await fetch(endpoint, { headers: { 'client-id': env.TWITCH_CLIENT_ID, authorization: `Bearer ${token}` } });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(`Twitch EventSub status failed ${response.status}`);
+  const subscriptions = (body.data || []).filter(x => String(x.condition?.broadcaster_user_id || '') === String(env.TWITCH_BROADCASTER_ID) && String(x.condition?.reward_id || '') === PTS_REWARD_ID)
+    .map(x => ({ id: x.id, status: x.status, type: x.type, callback: x.transport?.callback || '', method: x.transport?.method || '' }));
+  const counts = await env.DB.prepare('SELECT status, COUNT(*) AS count FROM twitch_pts_eventsub_shadow GROUP BY status').all();
+  return json({ ok: true, subscriptions, event_counts: counts.results || [] });
+}
+
+async function adminPendingTwitchEventSubPoints(request, env) {
+  const auth = requireAdmin(request, env);
+  if (!auth.ok) return auth.response;
+  const rows = await env.DB.prepare(`SELECT event_id,twitch_user_id,twitch_login,twitch_display_name,reward_title,reward_cost,received_at FROM twitch_pts_eventsub_shadow WHERE status='pending' ORDER BY received_at ASC LIMIT 50`).all();
+  return json({ ok: true, events: rows.results || [] });
+}
+
+async function adminAckTwitchEventSubPoints(request, env) {
+  const auth = requireAdmin(request, env);
+  if (!auth.ok) return auth.response;
+  const payload = await request.json().catch(() => ({}));
+  const ids = Array.isArray(payload.event_ids) ? payload.event_ids.map(String).filter(Boolean).slice(0, 50) : [];
+  const status = payload.status === 'failed' ? 'failed' : 'applied';
+  for (const eventId of ids) await env.DB.prepare("UPDATE twitch_pts_eventsub_shadow SET status=? WHERE event_id=? AND status='pending'").bind(status, eventId).run();
+  return json({ ok: true, event_ids: ids, status });
+}
+
+async function createTwitchPtsShadowSubscription(_userAccessToken, userId, env) {
+  if (String(userId) !== String(env.TWITCH_BROADCASTER_ID)) throw new Error('only the broadcaster may create the EventSub subscription');
+  // Twitch requires an App Access Token, not a broadcaster user token, for
+  // webhook EventSub subscriptions. The OAuth login above only proves that
+  // the requester is the broadcaster and has granted the required scope.
+  const tokenRes = await fetch('https://id.twitch.tv/oauth2/token', {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: env.TWITCH_CLIENT_ID,
+      client_secret: env.TWITCH_CLIENT_SECRET,
+      grant_type: 'client_credentials',
+    }),
+  });
+  const tokenBody = await tokenRes.json().catch(() => ({}));
+  if (!tokenRes.ok || !tokenBody.access_token) throw new Error(`Twitch app token failed ${tokenRes.status}`);
+  const res = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+    method: 'POST',
+    headers: { 'client-id': env.TWITCH_CLIENT_ID, authorization: `Bearer ${tokenBody.access_token}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      type: PTS_EVENTSUB_TYPE, version: '1',
+      condition: { broadcaster_user_id: String(env.TWITCH_BROADCASTER_ID), reward_id: PTS_REWARD_ID },
+      transport: { method: 'webhook', callback: 'https://peanut-api.jimpae.info/webhooks/twitch/eventsub', secret: env.TWITCH_EVENTSUB_SECRET },
+    }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Twitch EventSub subscription failed ${res.status}: ${JSON.stringify(body).slice(0, 300)}`);
+  return body.data?.[0] || body;
 }
 
 
@@ -103,9 +251,19 @@ async function profileAdminStatus(request, env) {
   return json({ ok: true, updated_at: row.updated_at, data: JSON.parse(row.payload) });
 }
 
+async function ensurePointsByPlatformSchema(env) {
+  try {
+    await env.DB.prepare('ALTER TABLE viewer_profiles_v2 ADD COLUMN points_by_platform TEXT').run();
+  } catch (e) {
+    // SQLite/D1 reports duplicate-column when another request already migrated.
+    if (!/duplicate column|already exists/i.test(String(e?.message || e))) throw e;
+  }
+}
+
 async function adminSync(request, env) {
   const auth = requireAdmin(request, env);
   if (!auth.ok) return auth.response;
+  await ensurePointsByPlatformSchema(env);
   const payload = await request.json();
   // Backward compat: legacy payloads (no is_full) are full snapshots.
   // Default to full unless explicitly is_full === false.
@@ -125,8 +283,8 @@ async function adminSync(request, env) {
 
     const viewerStmt = env.DB.prepare(`
       INSERT OR REPLACE INTO viewer_profiles_v2
-      (viewer_id, twitch_user_id, twitch_login, twitch_display_name, youtube_channel_id, youtube_handle, youtube_display_name, discord_user_id, discord_username, discord_linked, points, points_rank, points_platform, avatar_render_url, last_synced_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (viewer_id, twitch_user_id, twitch_login, twitch_display_name, youtube_channel_id, youtube_handle, youtube_display_name, discord_user_id, discord_username, discord_linked, points, points_rank, points_platform, points_by_platform, avatar_render_url, last_synced_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     const ownershipStmt = env.DB.prepare('INSERT OR REPLACE INTO peanut_ownerships_v2 (viewer_id, season_number, source_platform, created_at) VALUES (?, ?, ?, ?)');
 
@@ -135,7 +293,7 @@ async function adminSync(request, env) {
         Number(v.viewer_id), v.twitch_user_id || null, v.twitch_login || null, v.twitch_display_name || null,
         v.youtube_channel_id || null, v.youtube_handle || null, v.youtube_display_name || null,
         v.discord_user_id || null, v.discord_username || null, v.discord_linked ? 1 : 0,
-        v.points ?? null, v.points_rank ?? null, v.points_platform || null, v.avatar_render_url || null, syncedAt,
+        v.points ?? null, v.points_rank ?? null, v.points_platform || null, JSON.stringify(v.points_by_platform || {}), v.avatar_render_url || null, syncedAt,
       ));
       if (batch.length) await env.DB.batch(batch);
     }
@@ -161,15 +319,15 @@ async function adminSync(request, env) {
   if (changedViewers.length > 0) {
     const viewerStmt = env.DB.prepare(`
       INSERT OR REPLACE INTO viewer_profiles_v2
-      (viewer_id, twitch_user_id, twitch_login, twitch_display_name, youtube_channel_id, youtube_handle, youtube_display_name, discord_user_id, discord_username, discord_linked, points, points_rank, points_platform, avatar_render_url, last_synced_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (viewer_id, twitch_user_id, twitch_login, twitch_display_name, youtube_channel_id, youtube_handle, youtube_display_name, discord_user_id, discord_username, discord_linked, points, points_rank, points_platform, points_by_platform, avatar_render_url, last_synced_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     for (let i = 0; i < changedViewers.length; i += 100) {
       const batch = changedViewers.slice(i, i + 100).filter(v => v.viewer_id).map(v => viewerStmt.bind(
         Number(v.viewer_id), v.twitch_user_id || null, v.twitch_login || null, v.twitch_display_name || null,
         v.youtube_channel_id || null, v.youtube_handle || null, v.youtube_display_name || null,
         v.discord_user_id || null, v.discord_username || null, v.discord_linked ? 1 : 0,
-        v.points ?? null, v.points_rank ?? null, v.points_platform || null, v.avatar_render_url || null, syncedAt,
+        v.points ?? null, v.points_rank ?? null, v.points_platform || null, JSON.stringify(v.points_by_platform || {}), v.avatar_render_url || null, syncedAt,
       ));
       if (batch.length) await env.DB.batch(batch);
     }
@@ -388,9 +546,11 @@ async function twitchLogin(request, url, env) {
   auth.searchParams.set('scope', TWITCH_SCOPES);
   auth.searchParams.set('state', state);
   const returnTo = url.searchParams.get('return_to') || 'https://jimpae.info/profile';
+  const eventsubShadow = url.searchParams.get('eventsub_shadow') === '1' ? '1' : '';
   return redirectWithCookie(auth.toString(), 'peanut_oauth', {
     state,
     return_to: returnTo,
+    eventsub_shadow: eventsubShadow,
     youtube_channel_id: session?.youtube_channel_id || currentProfile?.youtube_channel_id || '',
     discord_user_id: session?.discord_user_id || currentProfile?.discord_user_id || '',
     current_viewer_id: currentProfile?.viewer_id || '',
@@ -405,6 +565,7 @@ async function twitchCallback(request, url, env) {
   if (!userRes.ok) return json({ ok: false, error: `twitch user failed ${userRes.status}` }, 502);
   const user = (await userRes.json()).data?.[0];
   if (!user) return json({ ok: false, error: 'twitch user not found' }, 502);
+  if (oauthState.eventsub_shadow === '1') await createTwitchPtsShadowSubscription(token.access_token, user.id, env);
   const sub = await checkTwitchSubscription(user.id, token.access_token, env);
   const checkedAt = new Date();
   const validUntil = new Date(checkedAt.getTime() + 24 * 60 * 60 * 1000);
@@ -546,25 +707,25 @@ async function youtubeCallback(request, url, env) {
 
 
 
-async function profileRedeemS58(request, env) {
+async function profileRedeemS59(request, env) {
   const session = await getSession(request, env);
   if (!session) return json({ ok: false, error: 'not logged in' }, 401);
   const { where, value } = identityWhere(session);
   if (!where) return json({ ok: false, error: 'no identity' }, 401);
   const profile = await env.DB.prepare(`SELECT * FROM viewer_profiles_v2 WHERE ${where}=?`).bind(value).first();
   if (!profile) return json({ ok: false, error: 'profile not found' }, 404);
-  const owned = await env.DB.prepare('SELECT 1 FROM peanut_ownerships_v2 WHERE viewer_id=? AND season_number=58 LIMIT 1').bind(Number(profile.viewer_id)).first();
-  if (owned) return json({ ok: false, error: '你已經有 S58 花生證。', code: 'already_owned' }, 409);
+  const owned = await env.DB.prepare('SELECT 1 FROM peanut_ownerships_v2 WHERE viewer_id=? AND season_number=59 LIMIT 1').bind(Number(profile.viewer_id)).first();
+  if (owned) return json({ ok: false, error: '你已經有 S59 花生證。', code: 'already_owned' }, 409);
   const points = Number(profile.points || 0);
   if (points < 1000) return json({ ok: false, error: '占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。', code: 'insufficient_points', points, cost: 1000 }, 402);
-  const existing = await env.DB.prepare("SELECT id FROM pending_peanut_redeems WHERE viewer_id=? AND season_number=58 AND status='pending' LIMIT 1").bind(Number(profile.viewer_id)).first();
-  if (existing) return json({ ok: true, status: 'pending', id: existing.id, season_number: 58, cost: 1000 });
+  const existing = await env.DB.prepare("SELECT id FROM pending_peanut_redeems WHERE viewer_id=? AND season_number=59 AND status='pending' LIMIT 1").bind(Number(profile.viewer_id)).first();
+  if (existing) return json({ ok: true, status: 'pending', id: existing.id, season_number: 59, cost: 1000 });
   const res = await env.DB.prepare(`
     INSERT INTO pending_peanut_redeems
     (viewer_id, season_number, cost, session_provider, session_subject, status, created_at)
-    VALUES (?, 58, 1000, ?, ?, 'pending', ?)
+    VALUES (?, 59, 1000, ?, ?, 'pending', ?)
   `).bind(Number(profile.viewer_id), session.provider || null, value || null, new Date().toISOString()).run();
-  return json({ ok: true, status: 'pending', id: res?.meta?.last_row_id || null, season_number: 58, cost: 1000 });
+  return json({ ok: true, status: 'pending', id: res?.meta?.last_row_id || null, season_number: 59, cost: 1000 });
 }
 
 async function profileEquipGear(request, env) {
@@ -647,7 +808,9 @@ async function profileMe(request, env) {
   }
   let twitchSub = null;
   if (session.twitch_user_id) twitchSub = await env.DB.prepare('SELECT is_subscriber, tier, checked_at, valid_until FROM twitch_sub_entitlements WHERE twitch_user_id=?').bind(String(session.twitch_user_id)).first();
-  return json({ ok: true, session, profile: profile || null, twitch_sub: twitchSub ? { active: !!Number(twitchSub.is_subscriber) && Number.isFinite(Date.parse(String(twitchSub.valid_until))) && Date.parse(String(twitchSub.valid_until)) > Date.now(), subscriber: !!Number(twitchSub.is_subscriber), tier: twitchSub.tier, checked_at: twitchSub.checked_at, valid_until: twitchSub.valid_until } : null, discord_pending: Number(pendingDiscord?.count || 0) > 0, seasons: (ownerships.results || []).map(r => ({ season_number: r.season_number, source_platform: r.source_platform, created_at: r.created_at })), gear_changes: gearChanges.results || [] });
+  let pointsByPlatform = {};
+  try { pointsByPlatform = profile?.points_by_platform ? JSON.parse(profile.points_by_platform) : {}; } catch { pointsByPlatform = {}; }
+  return json({ ok: true, session, profile: profile || null, points_by_platform: pointsByPlatform, twitch_sub: twitchSub ? { active: !!Number(twitchSub.is_subscriber) && Number.isFinite(Date.parse(String(twitchSub.valid_until))) && Date.parse(String(twitchSub.valid_until)) > Date.now(), subscriber: !!Number(twitchSub.is_subscriber), tier: twitchSub.tier, checked_at: twitchSub.checked_at, valid_until: twitchSub.valid_until } : null, discord_pending: Number(pendingDiscord?.count || 0) > 0, seasons: (ownerships.results || []).map(r => ({ season_number: r.season_number, source_platform: r.source_platform, created_at: r.created_at })), gear_changes: gearChanges.results || [] });
 }
 
 async function getSession(request, env) {
