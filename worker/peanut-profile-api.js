@@ -471,7 +471,14 @@ async function profileBuyGear(request, env) {
   const item = await env.DB.prepare('SELECT gear_set, gear_piece, label, price FROM gear_catalog WHERE gear_set=? AND gear_piece=? AND enabled=1').bind(gearSet,gearPiece).first();
   if (!item) return json({ok:false,error:'裝備不存在或已停用',code:'gear_unavailable'},404);
   const existing = await env.DB.prepare('SELECT id,status,price FROM gear_purchases WHERE platform=? AND platform_user_id=? AND gear_set=? AND gear_piece=?').bind(platform,platformUserId,gearSet,gearPiece).first();
-  if (existing) return json({ok:true,duplicate:true,purchase:existing});
+  if (existing) {
+    if (existing.status === 'failed_before_deduction') {
+      await env.DB.prepare("UPDATE gear_purchases SET status='pending', message='requeued after pre-deduction failure' WHERE id=?").bind(existing.id).run();
+      const p = await env.DB.prepare('SELECT id,status,platform,gear_set,gear_piece,price,created_at FROM gear_purchases WHERE id=?').bind(existing.id).first();
+      return json({ok:true,requeued:true,purchase:p});
+    }
+    return json({ok:true,duplicate:true,purchase:existing});
+  }
   try {
     const res = await env.DB.prepare('INSERT INTO gear_purchases (viewer_id,platform,platform_user_id,gear_set,gear_piece,price,session_provider,session_subject,status,created_at) VALUES (?,?,?,?,?,?,?,? ,\'pending\',?)').bind(Number(profile.viewer_id),platform,platformUserId,gearSet,gearPiece,Number(item.price),session.provider || null,value || null,new Date().toISOString()).run();
     const purchase = await env.DB.prepare('SELECT id,status,platform,gear_set,gear_piece,price,created_at FROM gear_purchases WHERE id=?').bind(res.meta.last_row_id).first();
