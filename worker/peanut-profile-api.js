@@ -873,7 +873,7 @@ async function profileMe(request, env) {
     gearChanges = await env.DB.prepare("SELECT id, platform, gear_set, gear_piece, status, created_at, applied_at FROM pending_avatar_gear_changes WHERE viewer_id=? AND status IN ('pending','applied') ORDER BY id DESC LIMIT 100").bind(profile.viewer_id).all();
   }
   let gearPurchases = { results: [] };
-  if (profile) { await ensureGearPurchaseSchema(env); gearPurchases = await env.DB.prepare('SELECT id, platform, gear_set, gear_piece, price, status, before_points, after_points, message, created_at, confirmed_at FROM gear_purchases WHERE viewer_id=? ORDER BY id DESC LIMIT 100').bind(profile.viewer_id).all(); }
+  if (profile) { try { gearPurchases = await env.DB.prepare('SELECT id, platform, gear_set, gear_piece, price, status, before_points, after_points, message, created_at, confirmed_at FROM gear_purchases WHERE viewer_id=? ORDER BY id DESC LIMIT 100').bind(profile.viewer_id).all(); } catch (e) { if (!/no such table|does not exist/i.test(String(e?.message || e))) throw e; } }
   let twitchSub = null;
   if (session.twitch_user_id) twitchSub = await env.DB.prepare('SELECT is_subscriber, tier, checked_at, valid_until FROM twitch_sub_entitlements WHERE twitch_user_id=?').bind(String(session.twitch_user_id)).first();
   let pointsByPlatform = {};
