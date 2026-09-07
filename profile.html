@@ -220,11 +220,13 @@
       }
       const avatarBtn = e.target.closest('.avatar-toggle');
       if (avatarBtn) {
-        const img = document.getElementById('streamAvatarPreview');
-        if (img) img.src = avatarBtn.dataset.avatarSrc;
+        const platform = avatarBtn.dataset.avatarPlatform;
+        const canvas = document.getElementById('streamAvatarPreview');
+        if(canvas) canvas.dataset.avatarPlatform = platform;
         document.querySelectorAll('.avatar-toggle').forEach(b => { b.style.borderColor = '#24444d'; b.style.background = '#061016'; });
         avatarBtn.style.borderColor = '#7dd3fc'; avatarBtn.style.background = '#123040';
-        if (window.renderGearInventory) window.renderGearInventory(avatarBtn.dataset.avatarPlatform);
+        if (window.renderGearInventory) window.renderGearInventory(platform);
+        renderOverviewAvatarCanvas(platform).catch(()=>{});
         return;
       }
       const saveGear = e.target.closest('#saveGearChanges');
@@ -302,6 +304,32 @@
       return p;
     }
 
+    async function renderOverviewAvatarCanvas(platform){
+      const canvas = document.getElementById('streamAvatarPreview');
+      const entry = window.profileGearEntry;
+      const gear = entry?.platforms?.[platform];
+      if(!canvas || !gear?.preview?.base?.src) return;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const layers = [];
+      const current = new Map((gear.current || []).map(x => [`${x.set}|${x.piece}`, x]));
+      for(const slot of (gear.slots || [])){
+        const piece = String(slot.current || 'none');
+        if(piece.toLowerCase() === 'none' || piece.toLowerCase() === 'empty') continue;
+        const opt = (slot.options || []).find(o => String(o.piece).toLowerCase() === piece.toLowerCase());
+        if(opt?.layer?.src) layers.push(opt.layer);
+      }
+      const draw = async layer => {
+        const img = await loadPreviewImage(layer.src);
+        if(!img) return;
+        ctx.drawImage(img, 0, 0, img.width, img.height, Number(layer.left||0), Number(layer.top||0), Number(layer.width||img.width), Number(layer.height||img.height));
+      };
+      for(const layer of layers.filter(x => Number(x.z||0) < 0).sort((a,b)=>Number(a.z||0)-Number(b.z||0))) await draw(layer);
+      await draw(gear.preview.base);
+      for(const layer of layers.filter(x => Number(x.z||0) >= 0).sort((a,b)=>Number(a.z||0)-Number(b.z||0))) await draw(layer);
+    }
+
     function currentSlotSelections(){
       return Array.from(document.querySelectorAll('.gear-slot-select')).map(sel => {
         const opt = sel.selectedOptions && sel.selectedOptions[0];
@@ -376,6 +404,7 @@
         window.profileGearEntry = applyLatestGearChanges(entry || null, gearChanges);
         window.renderGearInventory = renderGearInventory;
         renderGearInventory(initialPlatform);
+        await renderOverviewAvatarCanvas(initialPlatform);
       }catch(e){
         box.innerHTML = `<p class="muted">Stream Avatar gear 暫時載入唔到。</p>`;
       }
@@ -571,7 +600,7 @@
       if (profile.youtube_channel_id) avatarOptions.push(['youtube', 'YouTube', `${avatarBase}-youtube.png`]);
       if (!avatarOptions.length && profile.avatar_render_url) avatarOptions.push(['default', 'Avatar', `https://jimpae.info${profile.avatar_render_url}`]);
       const avatarButtons = avatarOptions.map((a, i) => `<button class="avatar-toggle" data-avatar-platform="${escapeHtml(a[0])}" data-avatar-src="${escapeHtml(a[2])}" style="margin:0 6px 8px 0;padding:5px 9px;border-radius:999px;border:1px solid ${i===0?'#7dd3fc':'#24444d'};background:${i===0?'#123040':'#061016'};color:#e8f6fb">${escapeHtml(a[1])}</button>`).join('');
-      const avatarHtml = avatarOptions.length ? `<div class="stat"><strong>Stream Avatar</strong><span class="stat-value"><span>${avatarButtons}<br><img id="streamAvatarPreview" src="${escapeHtml(avatarOptions[0][2])}" alt="Stream Avatar" style="width:192px;height:192px;image-rendering:pixelated;border-radius:16px;background:#061016;border:1px solid #24444d;object-fit:contain"></span></span></div>` : '';
+      const avatarHtml = avatarOptions.length ? `<div class="stat"><strong>Stream Avatar</strong><span class="stat-value"><span>${avatarButtons}<br><canvas id="streamAvatarPreview" width="180" height="180" data-avatar-platform="${escapeHtml(avatarOptions[0][0])}" style="width:192px;height:192px;image-rendering:pixelated;border-radius:16px;background:#061016;border:1px solid #24444d;object-fit:contain"></canvas></span></span></div>` : '';
       const roleHint = profile.discord_linked
         ? '<div class="muted" style="font-size:12px;margin-top:4px">有花生證時會自動同步 Discord 身份組；可能有少少延遲。</div>'
         : '<div class="muted" style="font-size:12px;margin-top:4px">連結 Discord 後，有花生證會自動補身份組。</div>';
