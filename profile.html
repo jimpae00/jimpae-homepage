@@ -212,6 +212,12 @@
       if(tabBtn){ switchProfileTab(tabBtn.dataset.tabTarget); return; }
       const collapseBtn = e.target.closest('.collapse-head');
       if(collapseBtn){ toggleCollapsible(collapseBtn); return; }
+      const pointsBtn = e.target.closest('.points-platform-toggle');
+      if(pointsBtn){
+        localStorage.setItem('jimpae_profile_points_platform', pointsBtn.dataset.pointsPlatform);
+        if(window.currentProfileData) renderProfile(window.currentProfileData);
+        return;
+      }
       const avatarBtn = e.target.closest('.avatar-toggle');
       if (avatarBtn) {
         const img = document.getElementById('streamAvatarPreview');
@@ -520,6 +526,17 @@
       finally{ button.disabled=false; button.textContent='立即觀看'; }
     }
 
+    function renderPointsChoice(data, profile){
+      const values = data.points_by_platform || {};
+      const available = ['twitch','youtube'].filter(p => values[p] && ((p==='twitch' && profile.twitch_user_id) || (p==='youtube' && profile.youtube_channel_id)));
+      if(!available.length) return '<span class="muted">未見到</span>';
+      const saved = localStorage.getItem('jimpae_profile_points_platform');
+      const selected = available.includes(saved) ? saved : (available.includes(data.session?.provider) ? data.session.provider : available[0]);
+      const buttons = available.map(p => `<button type="button" class="points-platform-toggle" data-points-platform="${p}" style="margin:0 5px 6px 0;padding:5px 9px;border-radius:999px;border:1px solid ${p===selected?'#7dd3fc':'#24444d'};background:${p===selected?'#123040':'#061016'};color:#e8f6fb">${p==='twitch'?'Twitch':'YouTube'}</button>`).join('');
+      const item = values[selected];
+      return `<span id="pointsDisplay"><span>${Number(item.points||0).toLocaleString()} 占幣${item.rank ? ` · #${item.rank}` : ''}</span><br>${buttons}</span>`;
+    }
+
     function renderProfile(data){
       const profile = data.profile || {};
       $('loginBtn').textContent = profile.twitch_user_id ? '更換 Twitch' : '連結 Twitch';
@@ -541,7 +558,8 @@
       const youtubeHandle = profile.youtube_handle || data.session?.youtube_handle || '';
       const discord = profile.discord_linked ? '<span class="ok">已連結</span>' : (data.discord_pending ? '<span class="warn">連結處理中</span>' : '<span class="warn">未連結</span>');
       const synced = profile.last_synced_at ? new Date(profile.last_synced_at).toLocaleString('zh-HK', {hour12:false}) : '未有同步時間';
-      const pts = profile.points != null ? `${Number(profile.points).toLocaleString()} 占幣${profile.points_rank ? ` · #${profile.points_rank}` : ''}` : '未見到';
+      window.currentProfileData = data;
+      const pts = renderPointsChoice(data, profile);
       const ownsS58Pre = (data.seasons || []).some(s => Number(s.season_number) === 58);
       const ptsHint = profile.points == null ? '<div class="muted" style="font-size:12px;margin-top:4px">排行榜未同步，或 Twitch/YouTube 名稱未 match。</div>' : (Number(profile.points || 0) < 1000 && !ownsS58Pre ? '<div class="muted" style="font-size:12px;margin-top:4px">占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。</div>' : '');
       const avatarBase = `https://jimpae.info/assets/avatar-renders/viewer-${Number(profile.viewer_id)}`;
@@ -557,7 +575,7 @@
       const unlinkBtn = (platform, enabled) => enabled ? `<button class="unlink" data-unlink="${platform}">解除連結</button>` : '';
       $('accountBox').innerHTML = `
         ${avatarHtml}
-        <div class="stat"><strong>PTS</strong><span class="stat-value"><span>${escapeHtml(pts)}${ptsHint}</span></span></div>
+        <div class="stat"><strong>PTS</strong><span class="stat-value"><span>${pts}${ptsHint}</span></span></div>
         <div class="stat"><strong>Twitch</strong><span class="stat-value"><span>${escapeHtml(twitch ? '@'+twitch : '—')}</span>${unlinkBtn('twitch', !!profile.twitch_user_id)}</span></div>
         <div class="stat"><strong>Twitch 訂閱</strong><span>${twitchSub}</span></div>
         <div class="stat"><strong>YouTube</strong><span class="stat-value"><span>${escapeHtml(youtube || youtubeHandle || '—')}</span>${unlinkBtn('youtube', !!profile.youtube_channel_id)}</span></div>
