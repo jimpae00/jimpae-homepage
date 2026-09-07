@@ -2606,6 +2606,7 @@
         "jp_jacket:blazer_grey",
         "jp_clothes:goblin_tshirt_black",
         "jp_pants:goblin_pants_black",
+        "jp_ears:goblin_ears",
         "jp_boots:shoes_black",
         "jp_back:goblin_ssj_hiro_black"
       ],
@@ -2630,6 +2631,7 @@
         "jp_jacket:blazer_grey",
         "jp_clothes:goblin_tshirt_black",
         "jp_pants:goblin_pants_black",
+        "jp_ears:goblin_ears",
         "jp_boots:shoes_black",
         "jp_back:goblin_ssj_hiro_black"
       ],
@@ -4200,6 +4202,7 @@
         "jp_weapons_l:mcpickaxe",
         "jp_cape:diana",
         "jp_overall:pooh_suit",
+        "jp_ears:goblin_ears",
         "jp_boots:femaleshoes_red"
       ],
       "skipped": [
@@ -4222,6 +4225,7 @@
         "jp_weapons_l:mcpickaxe",
         "jp_cape:diana",
         "jp_overall:pooh_suit",
+        "jp_ears:goblin_ears",
         "jp_boots:femaleshoes_red"
       ],
       "skipped": [
