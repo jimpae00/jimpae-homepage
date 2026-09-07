@@ -155,6 +155,24 @@ CREATE TABLE IF NOT EXISTS pending_avatar_gear_changes (
 CREATE INDEX IF NOT EXISTS idx_pending_avatar_gear_changes_status
 ON pending_avatar_gear_changes(status, id);
 
+-- Twitch EventSub shadow mode. These rows are audit-only until Streamer.bot
+-- is independently verified and explicitly retired as the live writer.
+CREATE TABLE IF NOT EXISTS twitch_pts_eventsub_shadow (
+  event_id TEXT PRIMARY KEY,
+  broadcaster_user_id TEXT NOT NULL,
+  reward_id TEXT NOT NULL,
+  reward_title TEXT,
+  twitch_user_id TEXT NOT NULL,
+  twitch_login TEXT,
+  twitch_display_name TEXT,
+  reward_cost INTEGER,
+  status TEXT NOT NULL DEFAULT 'shadow_received',
+  raw_event TEXT NOT NULL,
+  received_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_twitch_pts_eventsub_shadow_received
+ON twitch_pts_eventsub_shadow(received_at DESC);
+
 CREATE TABLE IF NOT EXISTS gear_catalog (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   gear_set TEXT NOT NULL,
@@ -169,6 +187,30 @@ CREATE TABLE IF NOT EXISTS gear_catalog (
   UNIQUE(gear_set, gear_piece)
 );
 CREATE INDEX IF NOT EXISTS idx_gear_catalog_enabled ON gear_catalog(enabled, sort_order);
+
+CREATE TABLE IF NOT EXISTS gear_purchases (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  viewer_id INTEGER NOT NULL,
+  platform TEXT NOT NULL,
+  platform_user_id TEXT NOT NULL,
+  gear_set TEXT NOT NULL,
+  gear_piece TEXT NOT NULL,
+  price INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  before_points INTEGER,
+  after_points INTEGER,
+  leaderboard_key TEXT,
+  session_provider TEXT,
+  session_subject TEXT,
+  message TEXT,
+  created_at TEXT NOT NULL,
+  deducted_at TEXT,
+  applied_at TEXT,
+  confirmed_at TEXT,
+  UNIQUE(platform, platform_user_id, gear_set, gear_piece)
+);
+CREATE INDEX IF NOT EXISTS idx_gear_purchases_status ON gear_purchases(status, id);
+CREATE INDEX IF NOT EXISTS idx_gear_purchases_viewer ON gear_purchases(viewer_id, platform, id);
 
 CREATE TABLE IF NOT EXISTS twitch_sub_entitlements (
   twitch_user_id TEXT PRIMARY KEY,

@@ -46,6 +46,8 @@ export default {
       if (url.pathname === '/admin/pending-peanut-redeems/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_peanut_redeems');
       if (url.pathname === '/admin/pending-avatar-gear-changes' && request.method === 'GET') return await adminPendingLinks(request, env, 'pending_avatar_gear_changes');
       if (url.pathname === '/admin/pending-avatar-gear-changes/ack' && request.method === 'POST') return await adminAckLinks(request, env, 'pending_avatar_gear_changes');
+      if (url.pathname === '/admin/pending-gear-purchases' && request.method === 'GET') return await adminPendingGearPurchases(request, env);
+      if (url.pathname === '/admin/pending-gear-purchases/ack' && request.method === 'POST') return await adminAckGearPurchases(request, env);
 
       if (url.pathname === '/profile/twitch/login' && request.method === 'GET') return await twitchLogin(request, url, env);
       if (url.pathname === '/profile/twitch/callback' && request.method === 'GET') return await twitchCallback(request, url, env);
@@ -61,6 +63,8 @@ export default {
       if (url.pathname === '/profile/test-deduct' && request.method === 'POST') return await profileTestDeduct(request, env);
       if (url.pathname === '/profile/redeem-s59' && request.method === 'POST') return await profileRedeemS59(request, env);
       if (url.pathname === '/profile/equip-gear' && request.method === 'POST') return await profileEquipGear(request, env);
+      if (url.pathname === '/profile/buy-gear' && request.method === 'POST') return await profileBuyGear(request, env);
+      if (url.pathname === '/profile/gear-purchases' && request.method === 'GET') return await profileGearPurchases(request, env);
       if (url.pathname === '/profile/logout' && request.method === 'POST') return cors(new Response(JSON.stringify({ ok: true }), { headers: { ...JSON_HEADERS, 'set-cookie': sessionCookie('', 0) } }), request);
       return json({ ok: false, error: 'not found' }, 404);
     } catch (err) {
@@ -412,6 +416,68 @@ async function adminAckLinks(request, env, table) {
 
 /* ───────── Gear Catalog Admin ───────── */
 
+async function ensureGearPurchaseSchema(env) {
+  await env.DB.batch([
+    env.DB.prepare(`CREATE TABLE IF NOT EXISTS gear_purchases (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, viewer_id INTEGER NOT NULL, platform TEXT NOT NULL,
+      platform_user_id TEXT NOT NULL, gear_set TEXT NOT NULL, gear_piece TEXT NOT NULL,
+      price INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'pending', before_points INTEGER,
+      after_points INTEGER, leaderboard_key TEXT, session_provider TEXT, session_subject TEXT,
+      message TEXT, created_at TEXT NOT NULL, deducted_at TEXT, applied_at TEXT, confirmed_at TEXT,
+      UNIQUE(platform, platform_user_id, gear_set, gear_piece)
+    )`),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_gear_purchases_status ON gear_purchases(status, id)'),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_gear_purchases_viewer ON gear_purchases(viewer_id, platform, id)'),
+  ]);
+}
+
+async function adminPendingGearPurchases(request, env) {
+  const auth = requireAdmin(request, env); if (!auth.ok) return auth.response;
+  await ensureGearPurchaseSchema(env);
+  const rows = await env.DB.prepare("SELECT * FROM gear_purchases WHERE status IN ('pending','deducted','applying') ORDER BY id LIMIT 100").all();
+  return json({ ok: true, purchases: rows.results || [] });
+}
+
+async function adminAckGearPurchases(request, env) {
+  const auth = requireAdmin(request, env); if (!auth.ok) return auth.response;
+  await ensureGearPurchaseSchema(env);
+  const body = await request.json().catch(() => ({}));
+  const ids = Array.isArray(body.ids) ? body.ids.map(Number).filter(Boolean) : [];
+  const status = ['deducted','applying','confirmed','failed_before_deduction','failed_after_deduction','refund_pending','refunded'].includes(body.status) ? body.status : 'confirmed';
+  const now = new Date().toISOString();
+  for (const id of ids) await env.DB.prepare('UPDATE gear_purchases SET status=?, message=COALESCE(?,message), applied_at=CASE WHEN ? IN (\'applying\',\'confirmed\') THEN COALESCE(applied_at,?) ELSE applied_at END, confirmed_at=CASE WHEN ?=\'confirmed\' THEN ? ELSE confirmed_at END WHERE id=?').bind(status, body.message || null, status, now, status, now, id).run();
+  return json({ ok: true, ids, status });
+}
+
+async function profileGearPurchases(request, env) {
+  const session = await getSession(request, env); if (!session) return json({ ok:false, error:'not logged in' }, 401);
+  const { where, value } = identityWhere(session); if (!where) return json({ ok:false, error:'no identity' }, 401);
+  const profile = await env.DB.prepare(`SELECT * FROM viewer_profiles_v2 WHERE ${where}=?`).bind(value).first();
+  if (!profile) return json({ ok:false, error:'profile not found' }, 404);
+  await ensureGearPurchaseSchema(env);
+  const rows = await env.DB.prepare('SELECT id, platform, gear_set, gear_piece, price, status, before_points, after_points, message, created_at, confirmed_at FROM gear_purchases WHERE viewer_id=? ORDER BY id DESC LIMIT 100').bind(Number(profile.viewer_id)).all();
+  return json({ ok:true, purchases: rows.results || [] });
+}
+
+async function profileBuyGear(request, env) {
+  const session = await getSession(request, env); if (!session) return json({ok:false,error:'not logged in'},401);
+  const { where, value } = identityWhere(session); if (!where) return json({ok:false,error:'no identity'},401);
+  const profile = await env.DB.prepare(`SELECT * FROM viewer_profiles_v2 WHERE ${where}=?`).bind(value).first(); if (!profile) return json({ok:false,error:'profile not found'},404);
+  await ensureGearPurchaseSchema(env);
+  const body = await request.json().catch(() => ({}));
+  const platform = String(body.platform || '').toLowerCase(); const gearSet = String(body.gear_set || '').trim(); const gearPiece = String(body.gear_piece || '').trim();
+  const platformUserId = platform === 'twitch' ? String(profile.twitch_user_id || '') : platform === 'youtube' ? String(profile.youtube_channel_id || '') : '';
+  if (!['twitch','youtube'].includes(platform) || !platformUserId || !gearSet || !gearPiece) return json({ok:false,error:'invalid platform or gear'},400);
+  const item = await env.DB.prepare('SELECT gear_set, gear_piece, label, price FROM gear_catalog WHERE gear_set=? AND gear_piece=? AND enabled=1').bind(gearSet,gearPiece).first();
+  if (!item) return json({ok:false,error:'裝備不存在或已停用',code:'gear_unavailable'},404);
+  const existing = await env.DB.prepare('SELECT id,status,price FROM gear_purchases WHERE platform=? AND platform_user_id=? AND gear_set=? AND gear_piece=?').bind(platform,platformUserId,gearSet,gearPiece).first();
+  if (existing) return json({ok:true,duplicate:true,purchase:existing});
+  try {
+    const res = await env.DB.prepare('INSERT INTO gear_purchases (viewer_id,platform,platform_user_id,gear_set,gear_piece,price,session_provider,session_subject,status,created_at) VALUES (?,?,?,?,?,?,?,? ,\'pending\',?)').bind(Number(profile.viewer_id),platform,platformUserId,gearSet,gearPiece,Number(item.price),session.provider || null,value || null,new Date().toISOString()).run();
+    const purchase = await env.DB.prepare('SELECT id,status,platform,gear_set,gear_piece,price,created_at FROM gear_purchases WHERE id=?').bind(res.meta.last_row_id).first();
+    return json({ok:true,purchase});
+  } catch (e) { if (/UNIQUE/i.test(String(e.message))) { const p=await env.DB.prepare('SELECT id,status,price FROM gear_purchases WHERE platform=? AND platform_user_id=? AND gear_set=? AND gear_piece=?').bind(platform,platformUserId,gearSet,gearPiece).first(); return json({ok:true,duplicate:true,purchase:p}); } throw e; }
+}
 async function adminGearCatalogList(request, env) {
   const auth = await requireProfileAdmin(request, env);
   if (!auth.ok) return auth.response;
@@ -806,11 +872,13 @@ async function profileMe(request, env) {
   if (profile) {
     gearChanges = await env.DB.prepare("SELECT id, platform, gear_set, gear_piece, status, created_at, applied_at FROM pending_avatar_gear_changes WHERE viewer_id=? AND status IN ('pending','applied') ORDER BY id DESC LIMIT 100").bind(profile.viewer_id).all();
   }
+  let gearPurchases = { results: [] };
+  if (profile) { await ensureGearPurchaseSchema(env); gearPurchases = await env.DB.prepare('SELECT id, platform, gear_set, gear_piece, price, status, before_points, after_points, message, created_at, confirmed_at FROM gear_purchases WHERE viewer_id=? ORDER BY id DESC LIMIT 100').bind(profile.viewer_id).all(); }
   let twitchSub = null;
   if (session.twitch_user_id) twitchSub = await env.DB.prepare('SELECT is_subscriber, tier, checked_at, valid_until FROM twitch_sub_entitlements WHERE twitch_user_id=?').bind(String(session.twitch_user_id)).first();
   let pointsByPlatform = {};
   try { pointsByPlatform = profile?.points_by_platform ? JSON.parse(profile.points_by_platform) : {}; } catch { pointsByPlatform = {}; }
-  return json({ ok: true, session, profile: profile || null, points_by_platform: pointsByPlatform, twitch_sub: twitchSub ? { active: !!Number(twitchSub.is_subscriber) && Number.isFinite(Date.parse(String(twitchSub.valid_until))) && Date.parse(String(twitchSub.valid_until)) > Date.now(), subscriber: !!Number(twitchSub.is_subscriber), tier: twitchSub.tier, checked_at: twitchSub.checked_at, valid_until: twitchSub.valid_until } : null, discord_pending: Number(pendingDiscord?.count || 0) > 0, seasons: (ownerships.results || []).map(r => ({ season_number: r.season_number, source_platform: r.source_platform, created_at: r.created_at })), gear_changes: gearChanges.results || [] });
+  return json({ ok: true, session, profile: profile || null, points_by_platform: pointsByPlatform, twitch_sub: twitchSub ? { active: !!Number(twitchSub.is_subscriber) && Number.isFinite(Date.parse(String(twitchSub.valid_until))) && Date.parse(String(twitchSub.valid_until)) > Date.now(), subscriber: !!Number(twitchSub.is_subscriber), tier: twitchSub.tier, checked_at: twitchSub.checked_at, valid_until: twitchSub.valid_until } : null, discord_pending: Number(pendingDiscord?.count || 0) > 0, seasons: (ownerships.results || []).map(r => ({ season_number: r.season_number, source_platform: r.source_platform, created_at: r.created_at })), gear_changes: gearChanges.results || [], gear_purchases: gearPurchases.results || [] });
 }
 
 async function getSession(request, env) {

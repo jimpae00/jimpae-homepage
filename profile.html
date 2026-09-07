@@ -42,6 +42,7 @@
       <div class="tabbar" role="tablist" aria-label="個人頁分頁">
         <button class="tab-btn active" type="button" role="tab" aria-selected="true" aria-controls="overviewTab" data-tab-target="overviewTab">總覽</button>
         <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="gearTab" data-tab-target="gearTab">直播角色裝備</button>
+        <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="gearShopTab" data-tab-target="gearShopTab">裝備商店</button>
         <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="memberVideosTab" data-tab-target="memberVideosTab">Twitch 訂閱影片</button>
         <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="helpTab" data-tab-target="helpTab">說明</button>
       </div>
@@ -78,6 +79,13 @@
             </div>
             <div id="gearBox" class="loading">載入直播角色裝備...</div>
           </div>
+        </article>
+      </section>
+
+      <section id="gearShopTab" class="tab-panel" role="tabpanel" aria-label="裝備商店">
+        <article class="panel collapsible-card gear-card is-open" data-collapsible>
+          <button class="collapse-head" type="button" aria-expanded="true"><span class="collapse-title"><span class="section-kicker">Gear Shop</span><strong>裝備商店</strong></span><span class="chevron" aria-hidden="true">⌄</span></button>
+          <div class="collapse-body"><p class="muted">選擇平台身份購買；購買後永久擁有。同一 platform identity 不可重複購買。</p><div id="gearShopBox" class="loading">載入裝備商店...</div></div>
         </article>
       </section>
 
@@ -227,6 +235,20 @@
         avatarBtn.style.borderColor = '#7dd3fc'; avatarBtn.style.background = '#123040';
         if (window.renderGearInventory) window.renderGearInventory(platform);
         renderOverviewAvatarCanvas(platform).catch(()=>{});
+        return;
+      }
+      const shopBtn = e.target.closest('.gear-buy-btn');
+      if(shopBtn){
+        const platform = shopBtn.dataset.buyPlatform;
+        if(!confirm(`用 ${platform==='twitch'?'Twitch':'YouTube'} PTS 購買呢件裝備？\n購買後永久擁有，平台 ownership 分開計。`)) return;
+        shopBtn.disabled = true; shopBtn.textContent = '提交中...';
+        try{
+          const res = await fetch(`${API}/profile/buy-gear`, {method:'POST', credentials:'include', headers:{'content-type':'application/json'}, body:JSON.stringify({platform, gear_set:shopBtn.dataset.buySet, gear_piece:shopBtn.dataset.buyPiece})});
+          const j = await res.json().catch(()=>({}));
+          if(!res.ok || !j.ok) throw new Error(j.error || `HTTP ${res.status}`);
+          shopBtn.textContent = j.duplicate ? '已提交/已擁有' : '已提交';
+          setTimeout(()=>init(), 1200);
+        }catch(err){ alert(`購買失敗：${err.message}`); shopBtn.disabled=false; shopBtn.textContent='購買'; }
         return;
       }
       const saveGear = e.target.closest('#saveGearChanges');
@@ -530,6 +552,23 @@
       if(btn){ btn.textContent = '儲存裝備'; btn.disabled = false; }
     }
 
+    async function loadGearShop(data){
+      const box = $('gearShopBox'); if(!box) return;
+      const profile = data.profile || {}; const pts = data.points_by_platform || {};
+      try {
+        const res = await fetch('https://peanut-api.jimpae.info/gear-catalog', {cache:'no-store'}); const j = await res.json();
+        if(!res.ok || !j.ok) throw new Error(j.error || `HTTP ${res.status}`);
+        const purchases = data.gear_purchases || [];
+        const cards = (j.gears || []).map(g => {
+          const owned = purchases.find(p => p.gear_set===g.gear_set && p.gear_piece===g.gear_piece && ['confirmed','deducted','applying'].includes(p.status));
+          const twitch = profile.twitch_user_id && pts.twitch; const youtube = profile.youtube_channel_id && pts.youtube;
+          const button = (platform, item) => item ? `<button class="btn btn-primary gear-buy-btn" data-buy-platform="${platform}" data-buy-set="${escapeHtml(g.gear_set)}" data-buy-piece="${escapeHtml(g.gear_piece)}" ${owned?'disabled':''}>${owned ? '已擁有' : `用${platform==='twitch'?'Twitch':'YouTube'} PTS 購買`}</button>` : '';
+          return `<article class="panel card" style="padding:16px"><h3>${escapeHtml(g.display_name)}</h3><p class="muted"><code>!buygear ${escapeHtml(g.id)}</code> · ${Number(g.cost).toLocaleString()} 占幣</p>${owned?`<p class="ok">${escapeHtml(owned.status)}</p>`:''}<div class="actions">${button('twitch',twitch)}${button('youtube',youtube)}</div></article>`;
+        }).join('');
+        box.innerHTML = `<div class="grid">${cards || '<p class="muted">暫無可購買裝備。</p>'}</div>`;
+      } catch(e) { box.innerHTML = `<p class="error">裝備商店載入失敗：${escapeHtml(e.message)}</p>`; }
+    }
+
     async function loadMemberVideos(){
       const box = $('memberVideoBox');
       box.innerHTML = '<p class="loading">檢查 Twitch 訂閱...</p>';
@@ -615,6 +654,7 @@
         <div class="stat"><strong>最後同步</strong><span>${escapeHtml(synced)}</span></div>
       `;
       loadGearInventory(profile, avatarOptions[0]?.[0] || 'twitch', data.gear_changes || []);
+      loadGearShop(data);
       const seasons = data.seasons || [];
       $('seasonBox').innerHTML = seasons.length
         ? `<div class="pill-row">${seasons.map(s => `<span class="season">S${escapeHtml(s.season_number)}</span>`).join('')}</div>`
