@@ -1585,7 +1585,7 @@
         "b_chairs:flowers",
         "b_emote:egggold",
         "b_face:shades",
-        "b_hats:christmasgreen"
+        "b_hats:seedling"
       ],
       "skipped": []
     },
@@ -1605,7 +1605,7 @@
         "b_chairs:flowers",
         "b_emote:egggold",
         "b_face:shades",
-        "b_hats:christmasgreen"
+        "b_hats:seedling"
       ],
       "skipped": []
     },
@@ -2259,7 +2259,7 @@
       "viewer_id": 397,
       "sa_key": "27019046",
       "match_method": "twitch_id",
-      "avatar_id": "mushroom",
+      "avatar_id": "lime",
       "color_id": "none",
       "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-397.png",
       "render_url": "/assets/avatar-renders/viewer-397.png",
@@ -2272,7 +2272,7 @@
       "viewer_id": 397,
       "sa_key": "27019046",
       "match_method": "twitch_id",
-      "avatar_id": "mushroom",
+      "avatar_id": "lime",
       "color_id": "none",
       "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-397-twitch.png",
       "render_url": "/assets/avatar-renders/viewer-397-twitch.png",
@@ -2610,7 +2610,6 @@
         "jp_jacket:blazer_grey",
         "jp_clothes:goblin_tshirt_black",
         "jp_pants:goblin_pants_black",
-        "jp_ears:goblin_ears",
         "jp_boots:shoes_black",
         "jp_back:goblin_ssj_hiro_black"
       ],
@@ -2635,7 +2634,6 @@
         "jp_jacket:blazer_grey",
         "jp_clothes:goblin_tshirt_black",
         "jp_pants:goblin_pants_black",
-        "jp_ears:goblin_ears",
         "jp_boots:shoes_black",
         "jp_back:goblin_ssj_hiro_black"
       ],
@@ -3498,8 +3496,7 @@
       "render_url": "/assets/avatar-renders/viewer-433.png",
       "platform": "default",
       "layers": [
-        "jp_cape:goblin_cape_green",
-        "jp_ears:goblin_ears"
+        "jp_cape:goblin_cape_green"
       ],
       "skipped": []
     },
@@ -3514,8 +3511,7 @@
       "render_url": "/assets/avatar-renders/viewer-433-twitch.png",
       "platform": "twitch",
       "layers": [
-        "jp_cape:goblin_cape_green",
-        "jp_ears:goblin_ears"
+        "jp_cape:goblin_cape_green"
       ],
       "skipped": []
     },
@@ -4166,7 +4162,6 @@
         "jp_weapons_l:mcpickaxe",
         "jp_cape:diana",
         "jp_overall:pooh_suit",
-        "jp_ears:goblin_ears",
         "jp_boots:femaleshoes_red"
       ],
       "skipped": [
@@ -4189,7 +4184,6 @@
         "jp_weapons_l:mcpickaxe",
         "jp_cape:diana",
         "jp_overall:pooh_suit",
-        "jp_ears:goblin_ears",
         "jp_boots:femaleshoes_red"
       ],
       "skipped": [
@@ -4253,6 +4247,21 @@
       "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-454.png",
       "render_url": "/assets/avatar-renders/viewer-454.png",
       "platform": "default",
+      "layers": [
+        "jp_ears:goblin_ears"
+      ],
+      "skipped": []
+    },
+    {
+      "ok": true,
+      "viewer_id": 454,
+      "sa_key": "YUCHE91QMPqLto_4OrNNWCOpA",
+      "match_method": "dict_name",
+      "avatar_id": "goblin",
+      "color_id": "none",
+      "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-454-twitch.png",
+      "render_url": "/assets/avatar-renders/viewer-454-twitch.png",
+      "platform": "twitch",
       "layers": [
         "jp_ears:goblin_ears"
       ],
