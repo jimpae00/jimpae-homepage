@@ -4206,7 +4206,6 @@
         "jp_weapons_l:mcpickaxe",
         "jp_cape:diana",
         "jp_overall:pooh_suit",
-        "jp_ears:goblin_ears",
         "jp_boots:femaleshoes_red"
       ],
       "skipped": [
@@ -4229,7 +4228,6 @@
         "jp_weapons_l:mcpickaxe",
         "jp_cape:diana",
         "jp_overall:pooh_suit",
-        "jp_ears:goblin_ears",
         "jp_boots:femaleshoes_red"
       ],
       "skipped": [
@@ -9943,6 +9941,8 @@
       "render_url": "/assets/avatar-renders/viewer-623.png",
       "platform": "default",
       "layers": [
+        "jp_head_gear:gasmask",
+        "jp_weapons_l:lantern_red_illumination",
         "jp_ears:goblin_ears"
       ],
       "skipped": []
@@ -9958,6 +9958,8 @@
       "render_url": "/assets/avatar-renders/viewer-623-twitch.png",
       "platform": "twitch",
       "layers": [
+        "jp_head_gear:gasmask",
+        "jp_weapons_l:lantern_red_illumination",
         "jp_ears:goblin_ears"
       ],
       "skipped": []
