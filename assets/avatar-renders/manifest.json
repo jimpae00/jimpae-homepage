@@ -2610,7 +2610,6 @@
         "jp_jacket:blazer_grey",
         "jp_clothes:goblin_tshirt_black",
         "jp_pants:goblin_pants_black",
-        "jp_ears:goblin_ears",
         "jp_boots:shoes_black",
         "jp_back:goblin_ssj_hiro_black"
       ],
@@ -2635,7 +2634,6 @@
         "jp_jacket:blazer_grey",
         "jp_clothes:goblin_tshirt_black",
         "jp_pants:goblin_pants_black",
-        "jp_ears:goblin_ears",
         "jp_boots:shoes_black",
         "jp_back:goblin_ssj_hiro_black"
       ],
@@ -2643,50 +2641,6 @@
         "jp_eyes:meme-glasses-color2-seasonal:large",
         "jp_emotes:galaxy:large"
       ]
-    },
-    {
-      "ok": true,
-      "viewer_id": 408,
-      "sa_key": "78875851",
-      "match_method": "twitch_id",
-      "avatar_id": "goblin",
-      "color_id": "gold",
-      "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-408.png",
-      "render_url": "/assets/avatar-renders/viewer-408.png",
-      "platform": "default",
-      "layers": [
-        "jp_back:goblin_sandevistan",
-        "jp_hair:longhair5_black",
-        "jp_hats:bunny_red_head_idle",
-        "jp_weapons_l:panda_weapon",
-        "jp_eyes:cyberpsychosis",
-        "jp_cape:diana",
-        "jp_overall:bunny_red",
-        "jp_boots:legging_heel"
-      ],
-      "skipped": []
-    },
-    {
-      "ok": true,
-      "viewer_id": 408,
-      "sa_key": "78875851",
-      "match_method": "twitch_id",
-      "avatar_id": "goblin",
-      "color_id": "gold",
-      "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-408-twitch.png",
-      "render_url": "/assets/avatar-renders/viewer-408-twitch.png",
-      "platform": "twitch",
-      "layers": [
-        "jp_back:goblin_sandevistan",
-        "jp_hair:longhair5_black",
-        "jp_hats:bunny_red_head_idle",
-        "jp_weapons_l:panda_weapon",
-        "jp_eyes:cyberpsychosis",
-        "jp_cape:diana",
-        "jp_overall:bunny_red",
-        "jp_boots:legging_heel"
-      ],
-      "skipped": []
     },
     {
       "ok": true,
@@ -3542,7 +3496,8 @@
       "render_url": "/assets/avatar-renders/viewer-433.png",
       "platform": "default",
       "layers": [
-        "jp_cape:goblin_cape_green"
+        "jp_cape:goblin_cape_green",
+        "jp_ears:goblin_ears"
       ],
       "skipped": []
     },
@@ -3557,7 +3512,8 @@
       "render_url": "/assets/avatar-renders/viewer-433-twitch.png",
       "platform": "twitch",
       "layers": [
-        "jp_cape:goblin_cape_green"
+        "jp_cape:goblin_cape_green",
+        "jp_ears:goblin_ears"
       ],
       "skipped": []
     },
@@ -9933,34 +9889,44 @@
     {
       "ok": true,
       "viewer_id": 623,
-      "sa_key": "1538139176",
+      "sa_key": "78875851",
       "match_method": "twitch_id",
       "avatar_id": "goblin",
-      "color_id": "none",
+      "color_id": "gold",
       "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-623.png",
       "render_url": "/assets/avatar-renders/viewer-623.png",
       "platform": "default",
       "layers": [
-        "jp_head_gear:gasmask",
-        "jp_weapons_l:lantern_red_illumination",
-        "jp_ears:goblin_ears"
+        "jp_back:goblin_sandevistan",
+        "jp_hair:longhair1_black",
+        "jp_hats:bunny_black_head_idle",
+        "jp_weapons_l:panda_weapon",
+        "jp_eyes:cyberpsychosis",
+        "jp_cape:diana",
+        "jp_overall:panda_suit",
+        "jp_boots:legging_heel"
       ],
       "skipped": []
     },
     {
       "ok": true,
       "viewer_id": 623,
-      "sa_key": "1538139176",
+      "sa_key": "78875851",
       "match_method": "twitch_id",
       "avatar_id": "goblin",
-      "color_id": "none",
+      "color_id": "gold",
       "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-623-twitch.png",
       "render_url": "/assets/avatar-renders/viewer-623-twitch.png",
       "platform": "twitch",
       "layers": [
-        "jp_head_gear:gasmask",
-        "jp_weapons_l:lantern_red_illumination",
-        "jp_ears:goblin_ears"
+        "jp_back:goblin_sandevistan",
+        "jp_hair:longhair1_black",
+        "jp_hats:bunny_black_head_idle",
+        "jp_weapons_l:panda_weapon",
+        "jp_eyes:cyberpsychosis",
+        "jp_cape:diana",
+        "jp_overall:panda_suit",
+        "jp_boots:legging_heel"
       ],
       "skipped": []
     }
