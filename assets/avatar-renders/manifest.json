@@ -2610,6 +2610,7 @@
         "jp_jacket:blazer_grey",
         "jp_clothes:goblin_tshirt_black",
         "jp_pants:goblin_pants_black",
+        "jp_ears:goblin_ears",
         "jp_boots:shoes_black",
         "jp_back:goblin_ssj_hiro_black"
       ],
@@ -2634,6 +2635,7 @@
         "jp_jacket:blazer_grey",
         "jp_clothes:goblin_tshirt_black",
         "jp_pants:goblin_pants_black",
+        "jp_ears:goblin_ears",
         "jp_boots:shoes_black",
         "jp_back:goblin_ssj_hiro_black"
       ],
@@ -3783,6 +3785,8 @@
         "jp_head_gear:ponytail_black",
         "jp_hair:longhair5_black",
         "jp_weapons_l:mcpickaxe",
+        "jp_cape:diana",
+        "jp_jacket:goblin_capetie_red",
         "jp_clothes:robloxhoodie",
         "jp_overall:maid_dress",
         "jp_ears:goblin_ears"
@@ -3803,6 +3807,8 @@
         "jp_head_gear:ponytail_black",
         "jp_hair:longhair5_black",
         "jp_weapons_l:mcpickaxe",
+        "jp_cape:diana",
+        "jp_jacket:goblin_capetie_red",
         "jp_clothes:robloxhoodie",
         "jp_overall:maid_dress",
         "jp_ears:goblin_ears"
@@ -9898,7 +9904,7 @@
       "platform": "default",
       "layers": [
         "jp_back:goblin_sandevistan",
-        "jp_hair:longhair1_black",
+        "jp_hair:longhair5_black",
         "jp_hats:bunny_black_head_idle",
         "jp_weapons_l:panda_weapon",
         "jp_eyes:cyberpsychosis",
@@ -9920,7 +9926,7 @@
       "platform": "twitch",
       "layers": [
         "jp_back:goblin_sandevistan",
-        "jp_hair:longhair1_black",
+        "jp_hair:longhair5_black",
         "jp_hats:bunny_black_head_idle",
         "jp_weapons_l:panda_weapon",
         "jp_eyes:cyberpsychosis",
