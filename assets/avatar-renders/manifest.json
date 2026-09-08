@@ -1803,11 +1803,11 @@
       "layers": [
         "b_offhand:flintlockpistol",
         "b_mainhand:farawand",
-        "b_back:demonwingdark",
+        "b_back:lightwings",
         "b_chairs:sleepykitty",
         "b_emote:slinggold",
-        "b_face:theoneeye",
-        "b_hats:poopcorn",
+        "b_face:dogface",
+        "b_hats:dogears",
         "b_heads:kitty"
       ],
       "skipped": []
@@ -1825,11 +1825,11 @@
       "layers": [
         "b_offhand:flintlockpistol",
         "b_mainhand:farawand",
-        "b_back:demonwingdark",
+        "b_back:lightwings",
         "b_chairs:sleepykitty",
         "b_emote:slinggold",
-        "b_face:theoneeye",
-        "b_hats:poopcorn",
+        "b_face:dogface",
+        "b_hats:dogears",
         "b_heads:kitty"
       ],
       "skipped": []
@@ -2610,6 +2610,7 @@
         "jp_jacket:blazer_grey",
         "jp_clothes:goblin_tshirt_black",
         "jp_pants:goblin_pants_black",
+        "jp_ears:goblin_ears",
         "jp_boots:shoes_black",
         "jp_back:goblin_ssj_hiro_black"
       ],
@@ -2634,6 +2635,7 @@
         "jp_jacket:blazer_grey",
         "jp_clothes:goblin_tshirt_black",
         "jp_pants:goblin_pants_black",
+        "jp_ears:goblin_ears",
         "jp_boots:shoes_black",
         "jp_back:goblin_ssj_hiro_black"
       ],
@@ -2657,7 +2659,7 @@
         "jp_hair:longhair5_black",
         "jp_hats:bunny_red_head_idle",
         "jp_weapons_l:panda_weapon",
-        "jp_eyes:cyberpsychosis",
+        "jp_eyes:goblin_eyes_yellow",
         "jp_cape:diana",
         "jp_overall:bunny_red",
         "jp_boots:legging_heel"
@@ -2679,7 +2681,7 @@
         "jp_hair:longhair5_black",
         "jp_hats:bunny_red_head_idle",
         "jp_weapons_l:panda_weapon",
-        "jp_eyes:cyberpsychosis",
+        "jp_eyes:goblin_eyes_yellow",
         "jp_cape:diana",
         "jp_overall:bunny_red",
         "jp_boots:legging_heel"
@@ -3826,8 +3828,8 @@
       "layers": [
         "jp_head_gear:ponytail_black",
         "jp_hair:longhair5_black",
-        "jp_weapons_l:lantern_red_illumination",
-        "jp_cape:diana",
+        "jp_weapons_l:mcpickaxe",
+        "jp_clothes:robloxhoodie",
         "jp_overall:maid_dress",
         "jp_ears:goblin_ears"
       ],
@@ -3846,8 +3848,8 @@
       "layers": [
         "jp_head_gear:ponytail_black",
         "jp_hair:longhair5_black",
-        "jp_weapons_l:lantern_red_illumination",
-        "jp_cape:diana",
+        "jp_weapons_l:mcpickaxe",
+        "jp_clothes:robloxhoodie",
         "jp_overall:maid_dress",
         "jp_ears:goblin_ears"
       ],
@@ -9465,36 +9467,48 @@
       "viewer_id": 609,
       "sa_key": "559468584",
       "match_method": "twitch_id",
-      "avatar_id": "kirby",
-      "color_id": "apoc_pink",
+      "avatar_id": "goblin",
+      "color_id": "none",
       "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-609.png",
       "render_url": "/assets/avatar-renders/viewer-609.png",
       "platform": "default",
       "layers": [
         "jp_back:soul_glow_red",
-        "kmystics:egg",
-        "kfists:sword",
-        "kskull:fire"
+        "jp_head_gear:goblin_horse_headgear",
+        "jp_hats:wizard_hat",
+        "jp_weapons_l:lantern_red_illumination",
+        "jp_pants:armorpants_iron",
+        "jp_overall:pooh_suit",
+        "jp_ears:goblin_ears",
+        "jp_boots:shoes_armor_copper"
       ],
-      "skipped": []
+      "skipped": [
+        "jp_eyes:meme-glasses-color2-seasonal:large"
+      ]
     },
     {
       "ok": true,
       "viewer_id": 609,
       "sa_key": "559468584",
       "match_method": "twitch_id",
-      "avatar_id": "kirby",
-      "color_id": "apoc_pink",
+      "avatar_id": "goblin",
+      "color_id": "none",
       "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-609-twitch.png",
       "render_url": "/assets/avatar-renders/viewer-609-twitch.png",
       "platform": "twitch",
       "layers": [
         "jp_back:soul_glow_red",
-        "kmystics:egg",
-        "kfists:sword",
-        "kskull:fire"
+        "jp_head_gear:goblin_horse_headgear",
+        "jp_hats:wizard_hat",
+        "jp_weapons_l:lantern_red_illumination",
+        "jp_pants:armorpants_iron",
+        "jp_overall:pooh_suit",
+        "jp_ears:goblin_ears",
+        "jp_boots:shoes_armor_copper"
       ],
-      "skipped": []
+      "skipped": [
+        "jp_eyes:meme-glasses-color2-seasonal:large"
+      ]
     },
     {
       "ok": false,
