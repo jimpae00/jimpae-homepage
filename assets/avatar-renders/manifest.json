@@ -3538,8 +3538,7 @@
       "render_url": "/assets/avatar-renders/viewer-433.png",
       "platform": "default",
       "layers": [
-        "jp_cape:goblin_cape_green",
-        "jp_ears:goblin_ears"
+        "jp_cape:goblin_cape_green"
       ],
       "skipped": []
     },
@@ -3554,8 +3553,7 @@
       "render_url": "/assets/avatar-renders/viewer-433-twitch.png",
       "platform": "twitch",
       "layers": [
-        "jp_cape:goblin_cape_green",
-        "jp_ears:goblin_ears"
+        "jp_cape:goblin_cape_green"
       ],
       "skipped": []
     },
@@ -4202,6 +4200,7 @@
         "jp_weapons_l:mcpickaxe",
         "jp_cape:diana",
         "jp_overall:pooh_suit",
+        "jp_ears:goblin_ears",
         "jp_boots:femaleshoes_red"
       ],
       "skipped": [
@@ -4224,6 +4223,7 @@
         "jp_weapons_l:mcpickaxe",
         "jp_cape:diana",
         "jp_overall:pooh_suit",
+        "jp_ears:goblin_ears",
         "jp_boots:femaleshoes_red"
       ],
       "skipped": [
@@ -4395,7 +4395,9 @@
       "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-457.png",
       "render_url": "/assets/avatar-renders/viewer-457.png",
       "platform": "default",
-      "layers": [],
+      "layers": [
+        "jp_overall:tie_black"
+      ],
       "skipped": []
     },
     {
@@ -4408,7 +4410,9 @@
       "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-457-twitch.png",
       "render_url": "/assets/avatar-renders/viewer-457-twitch.png",
       "platform": "twitch",
-      "layers": [],
+      "layers": [
+        "jp_overall:tie_black"
+      ],
       "skipped": []
     },
     {
