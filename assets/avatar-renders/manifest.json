@@ -2659,7 +2659,7 @@
         "jp_hair:longhair5_black",
         "jp_hats:bunny_red_head_idle",
         "jp_weapons_l:panda_weapon",
-        "jp_eyes:goblin_eyes_yellow",
+        "jp_eyes:cyberpsychosis",
         "jp_cape:diana",
         "jp_overall:bunny_red",
         "jp_boots:legging_heel"
@@ -2681,7 +2681,7 @@
         "jp_hair:longhair5_black",
         "jp_hats:bunny_red_head_idle",
         "jp_weapons_l:panda_weapon",
-        "jp_eyes:goblin_eyes_yellow",
+        "jp_eyes:cyberpsychosis",
         "jp_cape:diana",
         "jp_overall:bunny_red",
         "jp_boots:legging_heel"
@@ -3542,8 +3542,7 @@
       "render_url": "/assets/avatar-renders/viewer-433.png",
       "platform": "default",
       "layers": [
-        "jp_cape:goblin_cape_green",
-        "jp_ears:goblin_ears"
+        "jp_cape:goblin_cape_green"
       ],
       "skipped": []
     },
@@ -3558,8 +3557,7 @@
       "render_url": "/assets/avatar-renders/viewer-433-twitch.png",
       "platform": "twitch",
       "layers": [
-        "jp_cape:goblin_cape_green",
-        "jp_ears:goblin_ears"
+        "jp_cape:goblin_cape_green"
       ],
       "skipped": []
     },
@@ -4206,6 +4204,7 @@
         "jp_weapons_l:mcpickaxe",
         "jp_cape:diana",
         "jp_overall:pooh_suit",
+        "jp_ears:goblin_ears",
         "jp_boots:femaleshoes_red"
       ],
       "skipped": [
@@ -4228,6 +4227,7 @@
         "jp_weapons_l:mcpickaxe",
         "jp_cape:diana",
         "jp_overall:pooh_suit",
+        "jp_ears:goblin_ears",
         "jp_boots:femaleshoes_red"
       ],
       "skipped": [
