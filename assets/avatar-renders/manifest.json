@@ -1803,11 +1803,11 @@
       "layers": [
         "b_offhand:flintlockpistol",
         "b_mainhand:farawand",
-        "b_back:lightwings",
+        "b_back:tail1",
         "b_chairs:sleepykitty",
         "b_emote:slinggold",
-        "b_face:dogface",
-        "b_hats:dogears",
+        "b_face:eyepatch",
+        "b_hats:spaghetti",
         "b_heads:kitty"
       ],
       "skipped": []
@@ -1825,11 +1825,11 @@
       "layers": [
         "b_offhand:flintlockpistol",
         "b_mainhand:farawand",
-        "b_back:lightwings",
+        "b_back:tail1",
         "b_chairs:sleepykitty",
         "b_emote:slinggold",
-        "b_face:dogface",
-        "b_hats:dogears",
+        "b_face:eyepatch",
+        "b_hats:spaghetti",
         "b_heads:kitty"
       ],
       "skipped": []
@@ -5102,9 +5102,10 @@
       "platform": "default",
       "layers": [
         "jp_back:goblin_ssj_hiro_blue",
-        "jp_head_gear:headphone_white",
+        "jp_head_gear:headphone_blue",
+        "jp_weapons_l:lantern_red_illumination",
         "jp_clothes:armor_brass",
-        "jp_overall:bunny_blue",
+        "jp_overall:tie_red",
         "jp_ears:goblin_ears",
         "jp_boots:boots_invincible"
       ],
@@ -5124,9 +5125,10 @@
       "platform": "twitch",
       "layers": [
         "jp_back:goblin_ssj_hiro_blue",
-        "jp_head_gear:headphone_white",
+        "jp_head_gear:headphone_blue",
+        "jp_weapons_l:lantern_red_illumination",
         "jp_clothes:armor_brass",
-        "jp_overall:bunny_blue",
+        "jp_overall:tie_red",
         "jp_ears:goblin_ears",
         "jp_boots:boots_invincible"
       ],
@@ -9929,6 +9931,36 @@
       "skipped": [
         "jp_special:artifact:large"
       ]
+    },
+    {
+      "ok": true,
+      "viewer_id": 623,
+      "sa_key": "1538139176",
+      "match_method": "twitch_id",
+      "avatar_id": "goblin",
+      "color_id": "none",
+      "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-623.png",
+      "render_url": "/assets/avatar-renders/viewer-623.png",
+      "platform": "default",
+      "layers": [
+        "jp_ears:goblin_ears"
+      ],
+      "skipped": []
+    },
+    {
+      "ok": true,
+      "viewer_id": 623,
+      "sa_key": "1538139176",
+      "match_method": "twitch_id",
+      "avatar_id": "goblin",
+      "color_id": "none",
+      "render_path": "/home/deck/jimpae-homepage/assets/avatar-renders/viewer-623-twitch.png",
+      "render_url": "/assets/avatar-renders/viewer-623-twitch.png",
+      "platform": "twitch",
+      "layers": [
+        "jp_ears:goblin_ears"
+      ],
+      "skipped": []
     }
   ]
 }
