@@ -61,7 +61,7 @@ export default {
       if (memberPlaybackMatch && request.method === 'POST') return await profileMemberVideoPlayback(request, memberPlaybackMatch[1], env);
       if (url.pathname === '/profile/unlink' && request.method === 'POST') return await profileUnlink(request, env);
       if (url.pathname === '/profile/test-deduct' && request.method === 'POST') return await profileTestDeduct(request, env);
-      if (url.pathname === '/profile/redeem-s59' && request.method === 'POST') return await profileRedeemS59(request, env);
+      if (url.pathname === '/profile/redeem-s60' && request.method === 'POST') return await profileRedeemS60(request, env);
       if (url.pathname === '/profile/equip-gear' && request.method === 'POST') return await profileEquipGear(request, env);
       if (url.pathname === '/profile/buy-gear' && request.method === 'POST') return await profileBuyGear(request, env);
       if (url.pathname === '/profile/gear-purchases' && request.method === 'GET') return await profileGearPurchases(request, env);
@@ -780,25 +780,25 @@ async function youtubeCallback(request, url, env) {
 
 
 
-async function profileRedeemS59(request, env) {
+async function profileRedeemS60(request, env) {
   const session = await getSession(request, env);
   if (!session) return json({ ok: false, error: 'not logged in' }, 401);
   const { where, value } = identityWhere(session);
   if (!where) return json({ ok: false, error: 'no identity' }, 401);
   const profile = await env.DB.prepare(`SELECT * FROM viewer_profiles_v2 WHERE ${where}=?`).bind(value).first();
   if (!profile) return json({ ok: false, error: 'profile not found' }, 404);
-  const owned = await env.DB.prepare('SELECT 1 FROM peanut_ownerships_v2 WHERE viewer_id=? AND season_number=59 LIMIT 1').bind(Number(profile.viewer_id)).first();
-  if (owned) return json({ ok: false, error: '你已經有 S59 花生證。', code: 'already_owned' }, 409);
+  const owned = await env.DB.prepare('SELECT 1 FROM peanut_ownerships_v2 WHERE viewer_id=? AND season_number=60 LIMIT 1').bind(Number(profile.viewer_id)).first();
+  if (owned) return json({ ok: false, error: '你已經有 S60 花生證。', code: 'already_owned' }, 409);
   const points = Number(profile.points || 0);
   if (points < 1000) return json({ ok: false, error: '占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。', code: 'insufficient_points', points, cost: 1000 }, 402);
-  const existing = await env.DB.prepare("SELECT id FROM pending_peanut_redeems WHERE viewer_id=? AND season_number=59 AND status='pending' LIMIT 1").bind(Number(profile.viewer_id)).first();
-  if (existing) return json({ ok: true, status: 'pending', id: existing.id, season_number: 59, cost: 1000 });
+  const existing = await env.DB.prepare("SELECT id FROM pending_peanut_redeems WHERE viewer_id=? AND season_number=60 AND status='pending' LIMIT 1").bind(Number(profile.viewer_id)).first();
+  if (existing) return json({ ok: true, status: 'pending', id: existing.id, season_number: 60, cost: 1000 });
   const res = await env.DB.prepare(`
     INSERT INTO pending_peanut_redeems
     (viewer_id, season_number, cost, session_provider, session_subject, status, created_at)
-    VALUES (?, 59, 1000, ?, ?, 'pending', ?)
+    VALUES (?, 60, 1000, ?, ?, 'pending', ?)
   `).bind(Number(profile.viewer_id), session.provider || null, value || null, new Date().toISOString()).run();
-  return json({ ok: true, status: 'pending', id: res?.meta?.last_row_id || null, season_number: 59, cost: 1000 });
+  return json({ ok: true, status: 'pending', id: res?.meta?.last_row_id || null, season_number: 60, cost: 1000 });
 }
 
 async function profileEquipGear(request, env) {
