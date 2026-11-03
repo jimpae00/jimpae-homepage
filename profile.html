@@ -182,12 +182,38 @@
     }
     $('redeemS60Btn').addEventListener('click', async () => {
       if(!confirm('兌換 S60 花生證？將扣 1000 占幣。')) return;
-      $('redeemS60Btn').disabled = true;
-      $('redeemS60Btn').textContent = '兌換處理中...';
-      const res = await fetch(`${API}/profile/redeem-s60`, {method:'POST', credentials:'include'});
-      const data = await res.json().catch(()=>({}));
-      if(!res.ok || !data.ok){ alert(data.error || `兌換失敗：HTTP ${res.status}`); $('redeemS60Btn').disabled=false; $('redeemS60Btn').textContent='兌換 S60 花生證（1000 占幣）'; return; }
-      alert('S60 花生證兌換已提交，等幾秒 refresh 會更新。');
+      const btn = $('redeemS60Btn');
+      btn.disabled = true;
+      btn.textContent = '提交兌換中...';
+      try {
+        const res = await fetch(`${API}/profile/redeem-s60`, {method:'POST', credentials:'include'});
+        const data = await res.json().catch(()=>({}));
+        if(!res.ok || !data.ok){
+          alert(data.error || `兌換失敗：HTTP ${res.status}`);
+          btn.disabled = false;
+          btn.textContent = '兌換 S60 花生證（1000 占幣）';
+          return;
+        }
+        btn.textContent = '已提交，等候同步（可能需幾分鐘）';
+        // The Worker only queues redemption; points, ownership and role are applied later.
+        for(let attempt=0; attempt<20; attempt++){
+          await new Promise(resolve => setTimeout(resolve, 15000));
+          try {
+            const check = await fetch(`${API}/profile/me`, {credentials:'include', cache:'no-store'});
+            const profile = await check.json();
+            if(check.ok && profile.ok && (profile.seasons || []).some(s => Number(s.season_number) === 60)){
+              renderProfile(profile);
+              alert('S60 花生證已兌換成功；占幣及 Discord 身份組可能稍後更新。');
+              return;
+            }
+          } catch(_) { /* Keep checking after transient network failures. */ }
+        }
+        btn.textContent = '仍在處理，請稍後重新整理確認';
+        alert('兌換已提交，但尚未確認完成。請稍後重新整理；唔好重複兌換。');
+      } catch(err) {
+        btn.textContent = '結果未確認，請先重新整理檢查';
+        alert('網絡中斷，無法確認兌換有否提交。請先重新整理檢查，唔好立即重試。');
+      }
     });
 
     $('testDeductBtn').addEventListener('click', async () => {
