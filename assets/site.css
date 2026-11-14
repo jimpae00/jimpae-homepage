@@ -466,6 +466,23 @@ h4 { margin: 0 0 8px; font-size: 14px; font-weight: 500; }
   display: block;
   background: var(--raised);
 }
+.pillar-latest {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 400;
+}
+.faq-card a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.faq-card a:hover { color: var(--text); }
 .rewards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1023,6 +1040,11 @@ input:focus, select:focus, .gear-slot-select:focus {
 }
 
 .score.is-msg { font-size: 18px; font-weight: 400; letter-spacing: 0; color: var(--text-secondary); }
-#syncBottom.subtitle { font-size: 14px; line-height: 20px; max-width: none; }
+#syncBottom {
+  text-align: right;
+  max-width: 18em;
+}
+.help-copy + .help-copy { margin-top: 12px; }
+.tab-panel .panel + .panel { margin-top: 16px; }
 
 .shell-narrow > .hero { padding: 48px 0 24px; }
