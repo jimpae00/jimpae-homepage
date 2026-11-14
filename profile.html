@@ -1,37 +1,32 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Jimpae 花生證｜個人頁</title>
   <meta name="description" content="登入 Twitch 或 YouTube 查看你嘅 Jimpae 花生證個人頁。" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..900;1,9..40,400..900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <style>
-    :root{--background:#071017;--foreground:#f2fbff;--muted:#91a9b7;--border:rgba(255,255,255,.10);--primary:#6ed6ff;--primary-2:#a7f3ff;--on-primary:#031018;--good:#86efac;--warn:#ffd166;--shadow:0 24px 80px rgba(0,0,0,.45)}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:'DM Sans','Noto Sans TC',system-ui,-apple-system,sans-serif;color:var(--foreground);background:radial-gradient(circle at 15% 5%,rgba(110,214,255,.22),transparent 28rem),radial-gradient(circle at 85% 10%,rgba(167,243,255,.13),transparent 26rem),linear-gradient(180deg,#06131d 0%,var(--background) 44%,#05090d 100%)}
-    .shell{width:min(960px,100%);margin:0 auto;padding:28px 18px 56px}.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}.brand{display:flex;align-items:center;gap:12px;font-weight:900}.logo{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:var(--on-primary);box-shadow:0 0 34px rgba(110,214,255,.28)}.logo svg{width:22px;height:22px}.nav a{color:var(--muted);text-decoration:none}.panel{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025));border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow);backdrop-filter:blur(18px)}.hero{padding:34px;margin-bottom:20px}.eyebrow{display:inline-flex;color:var(--primary);font-weight:900;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px}h1{font-size:clamp(38px,7vw,68px);line-height:.95;margin:0 0 16px;letter-spacing:-.055em}.subtitle{color:#cbe1eb;font-size:18px;line-height:1.65;margin:0;max-width:70ch}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:999px;padding:12px 18px;font-weight:900;text-decoration:none;cursor:pointer}.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:var(--on-primary)}.btn-ghost{background:rgba(255,255,255,.06);color:var(--foreground);border:1px solid var(--border)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.card{padding:22px}.card h2,.card h3{margin:0 0 12px}.muted{color:var(--muted)}.stat{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--border)}.stat-value{display:flex;align-items:center;gap:10px;text-align:right}.unlink{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:#ffb4b4;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900;cursor:pointer}.stat:last-child{border-bottom:0}.pill-row{display:flex;flex-wrap:wrap;gap:10px}.season{display:inline-flex;align-items:center;border-radius:999px;padding:9px 13px;background:rgba(110,214,255,.12);border:1px solid rgba(110,214,255,.28);font-weight:900}.ok{color:var(--good)}.warn{color:var(--warn)}.error{color:#ff9ca3}.hidden{display:none}.loading{padding:22px;color:var(--muted)}code{background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:8px;padding:2px 6px}@media(max-width:760px){.grid{grid-template-columns:1fr}.hero{padding:24px}.nav{align-items:flex-start}.actions{flex-direction:column}.btn{width:100%}}
-
-    .profile-tabs{margin-top:14px}.tabbar{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px}.tab-btn{min-height:44px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.045);color:var(--muted);font-weight:900;padding:10px 15px;cursor:pointer;transition:background .2s ease,border-color .2s ease,color .2s ease,transform .2s ease}.tab-btn:hover{background:rgba(255,255,255,.08);color:var(--foreground);transform:translateY(-1px)}.tab-btn:focus-visible,.collapse-head:focus-visible{outline:3px solid rgba(110,214,255,.55);outline-offset:3px}.tab-btn.active{background:linear-gradient(135deg,rgba(110,214,255,.24),rgba(167,243,255,.16));border-color:rgba(110,214,255,.55);color:var(--foreground)}.tab-panel{display:none}.tab-panel.active{display:block}.tab-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.collapsible-card{padding:0;overflow:hidden}.collapse-head{width:100%;min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:14px;border:0;background:transparent;color:var(--foreground);padding:20px 22px;cursor:pointer;text-align:left}.collapse-title{display:grid;gap:3px}.section-kicker{color:var(--primary);font-size:11px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}.collapse-title strong{font-size:20px}.chevron{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:999px;border:1px solid var(--border);color:var(--primary);transition:transform .2s ease,background .2s ease}.collapsible-card.is-open .chevron{transform:rotate(180deg);background:rgba(110,214,255,.10)}.collapse-body{padding:0 22px 22px}.collapsible-card:not(.is-open) .collapse-body{display:none}.help-copy{color:#cbe1eb;line-height:1.65;margin:0}.gear-tab-intro{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin:0 0 14px}.gear-tab-intro p{margin:0}.status-chip{display:inline-flex;align-items:center;border:1px solid rgba(134,239,172,.28);background:rgba(134,239,172,.10);color:#b7f7c9;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;white-space:nowrap}@media(max-width:760px){.tab-grid{grid-template-columns:1fr}.gear-tab-intro{display:grid}.tab-btn{flex:1 1 auto}.collapse-head{padding:18px}.collapse-body{padding:0 18px 18px}}@media(prefers-reduced-motion:reduce){.tab-btn,.chevron{transition:none}.tab-btn:hover{transform:none}}
-
-    .member-video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.member-video-card{border:1px solid var(--border);border-radius:18px;overflow:hidden;background:rgba(255,255,255,.035)}.member-video-thumb{width:100%;aspect-ratio:16/9;object-fit:cover;background:#02070a}.member-video-copy{padding:14px}.member-video-copy h3{margin:0 0 7px}.member-player{margin-top:16px;aspect-ratio:16/9;border:1px solid var(--border);border-radius:18px;overflow:hidden;background:#000}.member-player iframe{width:100%;height:100%;border:0}.member-access{margin-bottom:14px;padding:13px 15px;border-radius:15px;border:1px solid var(--border);background:rgba(255,255,255,.035)}
-    .gear-card{overflow:visible}.gear-layout{display:grid;grid-template-columns:192px minmax(0,1fr);gap:16px;align-items:start}.gear-editor{min-width:0}.gear-save-bar{position:sticky;bottom:14px;z-index:30;margin-top:14px;padding:12px;border:1px solid rgba(110,214,255,.35);border-radius:18px;background:rgba(6,16,22,.88);box-shadow:0 18px 50px rgba(0,0,0,.38);backdrop-filter:blur(14px);display:flex;justify-content:flex-end}.gear-save-bar .gear-save-btn{min-width:150px;border:1px solid #7dd3fc;background:linear-gradient(135deg,#123040,#17445a);color:#e8f6fb;border-radius:999px;padding:11px 16px;font-weight:900;cursor:pointer}.gear-save-bar .gear-save-btn:disabled{opacity:.55;cursor:not-allowed;background:#123040}@media(max-width:760px){.gear-layout{grid-template-columns:1fr}.gear-save-bar{bottom:10px}.gear-save-bar .gear-save-btn{width:100%}}
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css" />
+  <!-- unslop by Damir Sokolovsky (https://github.com/heydamir/unslop), CC BY 4.0. -->
 </head>
 <body>
-  <main class="shell">
+  <main class="shell shell-narrow">
     <nav class="nav">
-      <div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M5 16.5 12 4l7 12.5-7-3.2-7 3.2Z" fill="currentColor"/><path d="M8 18.5h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><span>Jimpae 花生證</span></div>
-      <a href="/">← 返回首頁</a>
+      <div class="brand">
+        <div class="logo"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 16.5 12 4l7 12.5-7-3.2-7 3.2Z" fill="currentColor"/><path d="M8 18.5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <span>Jimpae 花生證</span>
+      </div>
+      <a href="/">返回首頁</a>
     </nav>
 
-    <section class="panel hero">
-      <div class="eyebrow">花生證</div>
+    <section class="hero">
+      <div class="kicker">花生證</div>
       <h1>花生證個人頁</h1>
-      <p class="subtitle">用 Twitch 或 YouTube 登入，查看你擁有嘅花生證 Season，同 Discord 連結狀態。資料由直播系統同步，可能有少少延遲。</p>
+      <p class="subtitle">用 Twitch 或 YouTube 登入，查看你擁有嘅花生證 Season，同 Discord 連結狀態。資料由直播系統同步，可能有少少延遲</p>
       <div class="actions" id="actions">
         <a class="btn btn-primary" id="loginBtn" href="#">登入 Twitch</a>
-        <a class="btn btn-primary hidden" id="discordBtn" href="#">連結 Discord</a>
-        <a class="btn btn-primary" id="youtubeBtn" href="#">登入 YouTube</a>
+        <a class="btn btn-secondary hidden" id="discordBtn" href="#">連結 Discord</a>
+        <a class="btn btn-secondary" id="youtubeBtn" href="#">登入 YouTube</a>
         <button class="btn btn-primary hidden" id="redeemS60Btn">兌換 S60 花生證（1000 占幣）</button>
         <button class="btn btn-ghost hidden" id="testDeductBtn">測試扣 100 占幣</button>
         <button class="btn btn-ghost hidden" id="logoutBtn">登出</button>
@@ -75,7 +70,6 @@
           <div class="collapse-body">
             <div class="gear-tab-intro">
               <p class="muted">預覽可以試裝；儲存後請稍等，直播角色會自動更改裝備。</p>
-              <span class="status-chip">快速套用</span>
             </div>
             <div id="gearBox" class="loading">載入直播角色裝備...</div>
           </div>
@@ -84,15 +78,21 @@
 
       <section id="gearShopTab" class="tab-panel" role="tabpanel" aria-label="裝備商店">
         <article class="panel collapsible-card gear-card is-open" data-collapsible>
-          <button class="collapse-head" type="button" aria-expanded="true"><span class="collapse-title"><span class="section-kicker">Gear Shop</span><strong>裝備商店</strong></span><span class="chevron" aria-hidden="true">⌄</span></button>
-          <div class="collapse-body"><p class="muted">選擇平台身份購買；購買後永久擁有。同一 platform identity 不可重複購買。</p><div id="gearShopBox" class="loading">載入裝備商店...</div></div>
+          <button class="collapse-head" type="button" aria-expanded="true">
+            <span class="collapse-title"><span class="section-kicker">商店</span><strong>裝備商店</strong></span>
+            <span class="chevron" aria-hidden="true">⌄</span>
+          </button>
+          <div class="collapse-body">
+            <p class="muted">選擇平台身份購買；購買後永久擁有。同一 platform identity 不可重複購買。</p>
+            <div id="gearShopBox" class="loading">載入裝備商店...</div>
+          </div>
         </article>
       </section>
 
       <section id="memberVideosTab" class="tab-panel" role="tabpanel" aria-label="Twitch 訂閱影片">
         <article class="panel collapsible-card is-open" data-collapsible>
           <button class="collapse-head" type="button" aria-expanded="true">
-            <span class="collapse-title"><span class="section-kicker">Twitch Subscribers</span><strong>訂閱者影片</strong></span>
+            <span class="collapse-title"><span class="section-kicker">Twitch 訂閱</span><strong>訂閱者影片</strong></span>
             <span class="chevron" aria-hidden="true">⌄</span>
           </button>
           <div class="collapse-body">
@@ -114,7 +114,7 @@
         </article>
       </section>
     </section>
-    <p class="muted" style="margin:18px 6px 0"><a href="/privacy" style="color:var(--primary)">私隱政策</a> · <a href="/terms" style="color:var(--primary)">服務條款</a></p>
+    <p class="legal-links muted"><a href="/privacy">私隱政策</a> · <a href="/terms">服務條款</a></p>
   </main>
 
   <script>
@@ -257,8 +257,8 @@
         const platform = avatarBtn.dataset.avatarPlatform;
         const canvas = document.getElementById('streamAvatarPreview');
         if(canvas) canvas.dataset.avatarPlatform = platform;
-        document.querySelectorAll('.avatar-toggle').forEach(b => { b.style.borderColor = '#24444d'; b.style.background = '#061016'; });
-        avatarBtn.style.borderColor = '#7dd3fc'; avatarBtn.style.background = '#123040';
+        document.querySelectorAll('.avatar-toggle').forEach(b => b.classList.remove('is-active'));
+        avatarBtn.classList.add('is-active');
         if (window.renderGearInventory) window.renderGearInventory(platform);
         renderOverviewAvatarCanvas(platform).catch(()=>{});
         return;
@@ -416,7 +416,7 @@
     }
 
     function gearPill(g, actionable=false){
-      return `<span title="${escapeHtml(g.set)}" style="display:inline-flex;gap:6px;align-items:center;margin:3px 4px 3px 0;padding:5px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:${g.equipped?'rgba(134,239,172,.12)':'rgba(255,255,255,.045)'};font-size:12px"><b>${escapeHtml(g.set_label)}</b>${escapeHtml(g.label)}${g.equipped?' ✓':''}</span>`;
+      return `<span class="gear-tag${g.equipped?' is-equipped':''}" title="${escapeHtml(g.set)}"><b>${escapeHtml(g.set_label)}</b>${escapeHtml(g.label)}${g.equipped?' <span class="tag-state">已裝備</span>':''}</span>`;
     }
 
     function applyLatestGearChanges(entry, changes){
@@ -479,16 +479,16 @@
       const slots = gear.slots || [];
       const dropdowns = slots.map(slot => {
         const opts = (slot.options || []).map(o => `<option value="${escapeHtml(o.piece)}" data-layer="${escapeHtml(JSON.stringify(o.layer || null))}" ${String(o.piece).toLowerCase()===String(slot.current).toLowerCase()?'selected':''}>${escapeHtml(o.label)}</option>`).join('');
-        return `<label style="display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center;margin:8px 0;font-size:13px">
-          <span style="font-weight:800;color:#cfe7ef">${escapeHtml(slotDisplayLabel(slot.set_label))}</span>
-          <select class="gear-slot-select" data-gear-set="${escapeHtml(slot.set)}" data-current="${escapeHtml(slot.current || 'none')}" style="background:#0f1820;color:#e8f6fb;border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:8px">${opts}</select>
+        return `<label class="gear-slot">
+          <span class="gear-slot-label">${escapeHtml(slotDisplayLabel(slot.set_label))}</span>
+          <select class="gear-slot-select" data-gear-set="${escapeHtml(slot.set)}" data-current="${escapeHtml(slot.current || 'none')}">${opts}</select>
         </label>`;
       }).join('') || '<p class="muted">未見到可更換裝備欄位。</p>';
       box.innerHTML = `
         <h3>直播角色裝備</h3>
         <div class="gear-layout">
-          <div><canvas id="gearPreviewCanvas" width="${previewCanvas}" height="${previewCanvas}" style="width:192px;height:192px;image-rendering:pixelated;border-radius:16px;background:#061016;border:1px solid #24444d"></canvas><div id="gearPreviewNote" class="muted" style="margin-top:8px;font-size:12px">未有改動。</div></div>
-          <div class="gear-editor"><h4 style="margin:0 0 6px">更改裝備</h4><div id="gearSlots">${dropdowns}</div></div>
+          <div><canvas id="gearPreviewCanvas" class="avatar-canvas" width="${previewCanvas}" height="${previewCanvas}"></canvas><div id="gearPreviewNote" class="muted hint">未有改動。</div></div>
+          <div class="gear-editor"><h4>更改裝備</h4><div id="gearSlots">${dropdowns}</div></div>
         </div>
         <div class="gear-save-bar"><button id="saveGearChanges" class="gear-save-btn" disabled>儲存裝備</button></div>`;
       renderGearPreviewCanvas().catch(()=>{});
@@ -589,7 +589,7 @@
           const owned = purchases.find(p => p.gear_set===g.gear_set && p.gear_piece===g.gear_piece && ['confirmed','deducted','applying'].includes(p.status));
           const twitch = profile.twitch_user_id && pts.twitch; const youtube = profile.youtube_channel_id && pts.youtube;
           const button = (platform, item) => item ? `<button class="btn btn-primary gear-buy-btn" data-buy-platform="${platform}" data-buy-set="${escapeHtml(g.gear_set)}" data-buy-piece="${escapeHtml(g.gear_piece)}" ${owned?'disabled':''}>${owned ? '已擁有' : `用${platform==='twitch'?'Twitch':'YouTube'} PTS 購買`}</button>` : '';
-          return `<article class="panel card" style="padding:16px"><h3>${escapeHtml(g.display_name)}</h3><p class="muted"><code>!buygear ${escapeHtml(g.id)}</code> · ${Number(g.cost).toLocaleString()} 占幣</p>${owned?`<p class="ok">${escapeHtml(owned.status)}</p>`:''}<div class="actions">${button('twitch',twitch)}${button('youtube',youtube)}</div></article>`;
+          return `<article class="panel card"><h3>${escapeHtml(g.display_name)}</h3><p class="muted"><code>!buygear ${escapeHtml(g.id)}</code> · ${Number(g.cost).toLocaleString()} 占幣</p>${owned?`<p class="ok">${escapeHtml(owned.status)}</p>`:''}<div class="actions">${button('twitch',twitch)}${button('youtube',youtube)}</div></article>`;
         }).join('');
         box.innerHTML = `<div class="grid">${cards || '<p class="muted">暫無可購買裝備。</p>'}</div>`;
       } catch(e) { box.innerHTML = `<p class="error">裝備商店載入失敗：${escapeHtml(e.message)}</p>`; }
@@ -607,7 +607,7 @@
         return;
       }
       const videos = data.videos || [];
-      box.innerHTML = `<div class="member-access"><span class="ok">Twitch 訂閱已驗證</span><div class="muted" style="font-size:12px;margin-top:4px">播放連結只有短時間有效，影片只可在登入後播放。</div></div>` + (videos.length ? `<div class="member-video-grid">${videos.map(v=>`<article class="member-video-card">${v.thumbnail_url?`<img class="member-video-thumb" src="${escapeHtml(v.thumbnail_url)}" alt="">`:''}<div class="member-video-copy"><h3>${escapeHtml(v.title)}</h3><p class="muted">${escapeHtml(v.description || '')}</p><button class="btn btn-primary" data-member-video="${escapeHtml(v.slug)}">立即觀看</button></div></article>`).join('')}</div>` : '<p class="muted">暫時未有影片。</p>');
+      box.innerHTML = `<div class="member-access"><span class="ok">Twitch 訂閱已驗證</span><div class="muted hint">播放連結只有短時間有效，影片只可在登入後播放。</div></div>` + (videos.length ? `<div class="member-video-grid">${videos.map(v=>`<article class="member-video-card">${v.thumbnail_url?`<img class="member-video-thumb" src="${escapeHtml(v.thumbnail_url)}" alt="">`:''}<div class="member-video-copy"><h3>${escapeHtml(v.title)}</h3><p class="muted">${escapeHtml(v.description || '')}</p><button class="btn btn-primary" data-member-video="${escapeHtml(v.slug)}">立即觀看</button></div></article>`).join('')}</div>` : '<p class="muted">暫時未有影片。</p>');
     }
 
     async function playMemberVideo(slug, button){
@@ -629,7 +629,7 @@
       if(!available.length) return '<span class="muted">未見到</span>';
       const saved = localStorage.getItem('jimpae_profile_points_platform');
       const selected = available.includes(saved) ? saved : (available.includes(data.session?.provider) ? data.session.provider : available[0]);
-      const buttons = available.map(p => `<button type="button" class="points-platform-toggle" data-points-platform="${p}" style="margin:0 5px 6px 0;padding:5px 9px;border-radius:999px;border:1px solid ${p===selected?'#7dd3fc':'#24444d'};background:${p===selected?'#123040':'#061016'};color:#e8f6fb">${p==='twitch'?'Twitch':'YouTube'}</button>`).join('');
+      const buttons = available.map(p => `<button type="button" class="points-platform-toggle${p===selected?' is-active':''}" data-points-platform="${p}">${p==='twitch'?'Twitch':'YouTube'}</button>`).join('');
       const item = values[selected];
       return `<span id="pointsDisplay"><span>${Number(item.points||0).toLocaleString()} 占幣${item.rank ? ` · #${item.rank}` : ''}</span><br>${buttons}</span>`;
     }
@@ -658,17 +658,17 @@
       window.currentProfileData = data;
       const pts = renderPointsChoice(data, profile);
       const ownsS60Pre = (data.seasons || []).some(s => Number(s.season_number) === 60);
-      const ptsHint = profile.points == null ? '<div class="muted" style="font-size:12px;margin-top:4px">排行榜未同步，或 Twitch/YouTube 名稱未 match。</div>' : (Number(profile.points || 0) < 1000 && !ownsS60Pre ? '<div class="muted" style="font-size:12px;margin-top:4px">占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。</div>' : '');
+      const ptsHint = profile.points == null ? '<div class="muted hint">排行榜未同步，或 Twitch/YouTube 名稱未 match。</div>' : (Number(profile.points || 0) < 1000 && !ownsS60Pre ? '<div class="muted hint">占幣不夠，參與直播活動賺幣或可用 Twitch 花生兌換。</div>' : '');
       const avatarBase = `https://jimpae.info/assets/avatar-renders/viewer-${Number(profile.viewer_id)}`;
       const avatarOptions = [];
       if (profile.twitch_user_id) avatarOptions.push(['twitch', 'Twitch', `${avatarBase}-twitch.png`]);
       if (profile.youtube_channel_id) avatarOptions.push(['youtube', 'YouTube', `${avatarBase}-youtube.png`]);
       if (!avatarOptions.length && profile.avatar_render_url) avatarOptions.push(['default', 'Avatar', `https://jimpae.info${profile.avatar_render_url}`]);
-      const avatarButtons = avatarOptions.map((a, i) => `<button class="avatar-toggle" data-avatar-platform="${escapeHtml(a[0])}" data-avatar-src="${escapeHtml(a[2])}" style="margin:0 6px 8px 0;padding:5px 9px;border-radius:999px;border:1px solid ${i===0?'#7dd3fc':'#24444d'};background:${i===0?'#123040':'#061016'};color:#e8f6fb">${escapeHtml(a[1])}</button>`).join('');
-      const avatarHtml = avatarOptions.length ? `<div class="stat"><strong>Stream Avatar</strong><span class="stat-value"><span>${avatarButtons}<br><canvas id="streamAvatarPreview" width="180" height="180" data-avatar-platform="${escapeHtml(avatarOptions[0][0])}" style="width:192px;height:192px;image-rendering:pixelated;border-radius:16px;background:#061016;border:1px solid #24444d;object-fit:contain"></canvas></span></span></div>` : '';
+      const avatarButtons = avatarOptions.map((a, i) => `<button class="avatar-toggle${i===0?' is-active':''}" data-avatar-platform="${escapeHtml(a[0])}" data-avatar-src="${escapeHtml(a[2])}">${escapeHtml(a[1])}</button>`).join('');
+      const avatarHtml = avatarOptions.length ? `<div class="stat"><strong>Stream Avatar</strong><span class="stat-value"><span>${avatarButtons}<br><canvas id="streamAvatarPreview" class="avatar-canvas" width="180" height="180" data-avatar-platform="${escapeHtml(avatarOptions[0][0])}"></canvas></span></span></div>` : '';
       const roleHint = profile.discord_linked
-        ? '<div class="muted" style="font-size:12px;margin-top:4px">有花生證時會自動同步 Discord 身份組；可能有少少延遲。</div>'
-        : '<div class="muted" style="font-size:12px;margin-top:4px">連結 Discord 後，有花生證會自動補身份組。</div>';
+        ? '<div class="muted hint">有花生證時會自動同步 Discord 身份組；可能有少少延遲。</div>'
+        : '<div class="muted hint">連結 Discord 後，有花生證會自動補身份組。</div>';
       const unlinkBtn = (platform, enabled) => enabled ? `<button class="unlink" data-unlink="${platform}">解除連結</button>` : '';
       $('accountBox').innerHTML = `
         ${avatarHtml}
