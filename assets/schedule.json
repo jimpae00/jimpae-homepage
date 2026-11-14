@@ -1,0 +1,9 @@
+{
+  "_comment": "改呢份檔就可以取消、加場，或者覆寫下次直播。日期一律用香港時區嘅 YYYY-MM-DD。cancelled：取消原本會開台嘅日子。extras：加場，例如 {\"date\":\"2026-11-16\",\"time\":\"20:00\",\"note\":\"加場\"}。next_override：手動指定下次直播，例如 {\"date\":\"2026-11-16\",\"time\":\"20:00\",\"label\":\"星期一\"}，只喺嗰個香港日完結前生效；過咗就返返平常規則。三樣而家都留空，所以仍然係逢星期二、四、日，晚上 8:00。直播狀態仍然以 Twitch / YouTube 真實開台為準。",
+  "timezone": "Asia/Hong_Kong",
+  "default_time": "20:00",
+  "default_days": [2, 4, 0],
+  "cancelled": [],
+  "extras": [],
+  "next_override": null
+}

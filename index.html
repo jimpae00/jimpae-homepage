@@ -3,11 +3,24 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Jimpae Homepage</title>
-  <meta name="description" content="Jimpae 直播互動說明、占幣系統、Minecraft 兌換同排行榜查詢。" />
+  <title>直播互動說明書｜Jimpae</title>
+  <meta name="description" content="Jimpae 直播互動說明、占幣系統同排行榜查詢。" />
+  <meta name="theme-color" content="#0b0d14" />
+  <link rel="canonical" href="https://jimpae.info/" />
+  <meta property="og:title" content="直播互動說明書｜Jimpae" />
+  <meta property="og:description" content="Jimpae 直播互動說明、占幣系統同排行榜查詢。" />
+  <meta property="og:url" content="https://jimpae.info/" />
+  <meta property="og:image" content="https://jimpae.info/assets/og.png" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/site.css" />
-  <!-- unslop by Damir Sokolovsky (https://github.com/heydamir/unslop), CC BY 4.0. -->
+  <!-- Unslop by Damir Sokolovsky (https://github.com/heydamir/unslop), CC BY 4.0. -->
+  <!-- Parked (hidden, not deleted) at Jimpae's request: Minecraft sections, MC金錢獸 / tip-jar, and 更新日誌. -->
 </head>
 <body>
   <main class="shell" id="top">
@@ -16,13 +29,39 @@
         <div class="logo"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 16.5 12 4l7 12.5-7-3.2-7 3.2Z" fill="currentColor"/><path d="M8 18.5h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
         <span>jimpae.info</span>
       </div>
-      <div class="nav-meta">二 / 四 / 日 · 8pm HKT</div>
+      <div class="nav-meta" id="navMeta">二 / 四 / 日 · 8:00 PM HKT</div>
     </nav>
 
     <section class="hero">
       <div class="kicker">觀眾說明</div>
       <h1>直播互動說明書</h1>
-      <p class="subtitle">點賺占幣、點用占幣、Minecraft 兌換點玩、賭盤點計，同埋點查看排行榜占幣</p>
+      <p class="subtitle hidden" hidden>點賺占幣、點用占幣、Minecraft 兌換點玩、賭盤點計，同埋點查看排行榜占幣</p>
+      <p class="subtitle">點賺占幣、點用占幣、賭盤點計，同埋點查看排行榜占幣</p>
+    </section>
+
+    <section class="opening" id="schedule">
+      <div class="opening-grid">
+        <div class="schedule-card" id="scheduleCard">
+          <strong id="scheduleLabel">下次直播</strong>
+          <b id="nextStream">計算中...</b>
+          <span id="nextStreamTime">8:00 PM HKT</span>
+          <p class="schedule-cadence" id="scheduleCadence">逢星期二、四、日開台</p>
+        </div>
+        <div class="peanut-explainer">
+          <strong>花生證</strong>
+          <p>花生證係觀眾身份／Season 證明。用 Twitch 或 YouTube 登入個人頁，可以睇自己擁有嘅 Season、Discord 連結同裝備。</p>
+          <a class="btn btn-primary" href="/profile">打開個人頁</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="opening-links" id="links">
+      <div class="links-grid links-primary">
+        <a class="link-card" href="https://discord.gg/jimpae" target="_blank" rel="noopener"><strong>Discord</strong><span>加入 Jimpae 社群</span></a>
+        <a class="link-card" href="https://www.twitch.tv/jimpae" target="_blank" rel="noopener"><strong>Twitch</strong><span>去 Twitch 睇直播</span></a>
+        <a class="link-card" href="https://www.youtube.com/@Jimpae" target="_blank" rel="noopener"><strong>YouTube</strong><span>去 YouTube 頻道</span></a>
+        <a class="link-card" href="mailto:jimpae00@gmail.com"><strong>商務合作 / Contact</strong><span>廣告合作、品牌邀約：jimpae00@gmail.com</span></a>
+      </div>
     </section>
 
     <nav class="anchor-nav" aria-label="頁面捷徑">
@@ -31,50 +70,23 @@
       <a href="#content-pillars">內容分類</a>
       <a href="#prediction-guide">賭盤</a>
       <a href="#gear">哥布林換裝</a>
-      <a href="#commands">常用指令</a>
-      <a href="#minecraft-menu">Minecraft 價目表</a>
-      <a href="#tip-jar">MC金錢獸</a>
-      <a href="#changelog">更新日誌</a>
-      <a href="#faq">FAQ</a>
+      <a href="#commands">指令清單</a>
+      <a href="#minecraft-menu" class="hidden" hidden>Minecraft 價目表</a>
+      <a href="#tip-jar" class="hidden" hidden>MC金錢獸</a>
+      <a href="#changelog" class="hidden" hidden>更新日誌</a>
+      <a href="#faq">常見問題</a>
       <a class="jump-btn" href="#leaderboard">查看排行</a>
     </nav>
 
-    <section class="section" id="schedule">
-      <div class="section-head"><div>
-        <h2>直播時間表 [schedule]</h2>
-        <p>固定逢星期二、四、日 8pm HKT 開台</p>
-      </div></div>
-      <div class="schedule-grid">
-        <div class="schedule-card">
-          <strong>下次直播</strong>
-          <b id="nextStream">計算中...</b>
-          <span>8:00 PM HKT</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="links">
-      <div class="section-head"><div>
-        <h2>相關連結</h2>
-        <p>Discord、Twitch、YouTube 同商務聯絡</p>
-      </div></div>
-      <div class="links-grid">
-        <a class="link-card" href="https://discord.gg/jimpae" target="_blank" rel="noopener"><strong>Discord</strong><span>加入 Jimpae 社群</span></a>
-        <a class="link-card" href="https://www.twitch.tv/jimpae" target="_blank" rel="noopener"><strong>Twitch</strong><span>去 Twitch 睇直播</span></a>
-        <a class="link-card" href="https://www.youtube.com/@Jimpae" target="_blank" rel="noopener"><strong>YouTube</strong><span>去 YouTube 頻道</span></a>
-        <a class="link-card" href="mailto:jimpae00@gmail.com"><strong>商務合作 / Contact</strong><span>廣告合作、品牌邀約：jimpae00@gmail.com</span></a>
-      </div>
-    </section>
-
     <section class="section" id="content-pillars">
       <div class="section-head"><div>
-        <h2>內容分類 / Content Pillars</h2>
+        <h2>內容分類</h2>
       </div></div>
-      <div class="links-grid">
-        <a class="link-card" href="https://www.youtube.com/playlist?list=PLd-tqOgM4a1Sw9hIQ-gG_NMfnMdQeMwwx" target="_blank" rel="noopener"><img class="pillar-thumb" src="https://i.ytimg.com/vi/3R5i3fqBcN4/hqdefault.jpg" alt="排行榜 Tier List 最新影片 thumbnail" loading="lazy"><strong>排行榜 Tier List</strong><span>各種排名、分級同討論合集</span></a>
-        <a class="link-card" href="https://www.youtube.com/playlist?list=PLd-tqOgM4a1SFX22LbeCx2ATCtBO8MiXh" target="_blank" rel="noopener"><img class="pillar-thumb" src="https://i.ytimg.com/vi/HKAStTi8h3w/hqdefault.jpg" alt="美食 Review 最新影片 thumbnail" loading="lazy"><strong>美食 Review</strong><span>食物、劣食、懷舊零食同飲食文化相關影片</span></a>
-        <a class="link-card" href="https://www.youtube.com/playlist?list=PLd-tqOgM4a1SrEJwBreM7tXZgvI-wMx5f" target="_blank" rel="noopener"><img class="pillar-thumb" src="https://i.ytimg.com/vi/Kd3GUukOxlY/hqdefault.jpg" alt="開箱你間房最新影片 thumbnail" loading="lazy"><strong>開箱你間房</strong><span>觀眾房間投稿、收藏、擺設同生活空間鑑賞</span></a>
-        <a class="link-card" href="https://www.youtube.com/playlist?list=PLd-tqOgM4a1Rdl-7XtYc-r05zfks2Pajj" target="_blank" rel="noopener"><img class="pillar-thumb" src="https://i.ytimg.com/vi/wlpk56zcreg/hqdefault.jpg" alt="網路觀察最新影片 thumbnail" loading="lazy"><strong>網路觀察</strong><span>網絡事件、香港互聯網文化同熱門話題討論</span></a>
+      <div class="links-grid" id="pillarGrid">
+        <a class="link-card pillar-card" href="https://www.youtube.com/playlist?list=PLd-tqOgM4a1Sw9hIQ-gG_NMfnMdQeMwwx" data-playlist-id="PLd-tqOgM4a1Sw9hIQ-gG_NMfnMdQeMwwx" target="_blank" rel="noopener"><img class="pillar-thumb" src="https://i.ytimg.com/vi/3R5i3fqBcN4/hqdefault.jpg" alt="排行榜 Tier List 最新影片 thumbnail" loading="lazy"><strong>排行榜 Tier List</strong><span>各種排名、分級同討論合集</span></a>
+        <a class="link-card pillar-card" href="https://www.youtube.com/playlist?list=PLd-tqOgM4a1SFX22LbeCx2ATCtBO8MiXh" data-playlist-id="PLd-tqOgM4a1SFX22LbeCx2ATCtBO8MiXh" target="_blank" rel="noopener"><img class="pillar-thumb" src="https://i.ytimg.com/vi/HKAStTi8h3w/hqdefault.jpg" alt="美食 Review 最新影片 thumbnail" loading="lazy"><strong>美食 Review</strong><span>食物、劣食、懷舊零食同飲食文化相關影片</span></a>
+        <a class="link-card pillar-card" href="https://www.youtube.com/playlist?list=PLd-tqOgM4a1SrEJwBreM7tXZgvI-wMx5f" data-playlist-id="PLd-tqOgM4a1SrEJwBreM7tXZgvI-wMx5f" target="_blank" rel="noopener"><img class="pillar-thumb" src="https://i.ytimg.com/vi/Kd3GUukOxlY/hqdefault.jpg" alt="開箱你間房最新影片 thumbnail" loading="lazy"><strong>開箱你間房</strong><span>觀眾房間投稿、收藏、擺設同生活空間鑑賞</span></a>
+        <a class="link-card pillar-card" href="https://www.youtube.com/playlist?list=PLd-tqOgM4a1Rdl-7XtYc-r05zfks2Pajj" data-playlist-id="PLd-tqOgM4a1Rdl-7XtYc-r05zfks2Pajj" target="_blank" rel="noopener"><img class="pillar-thumb" src="https://i.ytimg.com/vi/wlpk56zcreg/hqdefault.jpg" alt="網路觀察最新影片 thumbnail" loading="lazy"><strong>網路觀察</strong><span>網絡事件、香港互聯網文化同熱門話題討論</span></a>
       </div>
     </section>
 
@@ -92,29 +104,31 @@
             <li>賭盤 [prediction]：有效落注 <code>!bet 1 100</code> 或 <code>!bet 2 50</code> 會即送 +5 占幣，每次每人只計一次。</li>
             <li>開台領占幣 [Stream Start Claim]：0 cost / 25 占幣。</li>
             <li>直播完結領占幣 [Stream End Claim]：0 cost / 25 占幣。</li>
-            <li>Minecraft 金錢獸 [Money Boss]：每位有參與嘅觀眾 +50 占幣，每隻 boss 最多 20 人 / 1000 占幣。</li>
+            <li class="hidden" hidden>Minecraft 金錢獸 [Money Boss]：每位有參與嘅觀眾 +50 占幣，每隻 boss 最多 20 人 / 1000 占幣。</li>
           </ul>
         </article>
         <article class="panel info">
           <h3>點樣用占幣</h3>
           <ul>
-            <li>兌換 Minecraft 直播事件 [redeem]。</li>
+            <li class="hidden" hidden>兌換 Minecraft 直播事件 [redeem]。</li>
             <li>買角色裝備 [Stream Avatars gear]。</li>
             <li>參加賭盤 [prediction]，例如 <code>!bet 1 100</code> 或 <code>!bet 2 50</code>。</li>
             <li>參與其他期間限定互動活動。</li>
           </ul>
-          <div class="callout">如果裝備、redeem 或 points 未即時更新，通常係系統同步中。</div>
+          <div class="callout hidden" hidden>如果裝備、redeem 或 points 未即時更新，通常係系統同步中。</div>
+          <div class="callout">如果裝備或占幣未即時更新，通常係系統同步中。</div>
         </article>
       </div>
     </section>
 
-    <section class="section">
+    <section class="section hidden" hidden>
       <div class="section-head"><div>
         <h2>主要玩法</h2>
-        <p>Minecraft 同 prediction 規則集中喺呢度</p>
+        <p class="hidden" hidden>Minecraft 同 prediction 規則集中喺呢度</p>
+        <p>賭盤規則集中喺呢度</p>
       </div></div>
       <div class="grid-2">
-        <article class="panel info">
+        <article class="panel info hidden" hidden>
           <h3>Minecraft 兌換玩法 [redeem]</h3>
           <ul>
             <li>用占幣觸發 Minecraft 入面嘅直播互動事件。</li>
@@ -151,21 +165,26 @@
         <div class="reward"><strong>+5</strong><span>有效參與賭盤 [prediction] / <code>!bet 1 100</code>、<code>!bet 2 50</code>，每次每人只計一次</span></div>
         <div class="reward"><strong>+25</strong><span>開台領占幣 [Stream Start Claim]</span></div>
         <div class="reward"><strong>+25</strong><span>直播完結領占幣 [Stream End Claim]</span></div>
-        <div class="reward"><strong>+50</strong><span>Minecraft 金錢獸 [Money Boss] 每位參與者；每隻 boss 最多 20 人 / 1000 占幣</span></div>
-        <div class="reward"><strong>+100</strong><span><code>!creeper</code> / <code>!zombie</code> / <code>!skeleton</code> / <code>!black</code> 成功擊殺 Jimpae</span></div>
-        <div class="reward"><strong>+300</strong><span><code>!tnt</code> / <code>!lightning</code> 成功擊殺 Jimpae</span></div>
-        <div class="reward"><strong>+25</strong><span><code>!anvil</code> 成功擊殺 Jimpae</span></div>
-        <div class="reward"><strong>+10</strong><span><code>!mcroll</code> 輪盤抽中擊殺類並成功擊殺 Jimpae</span></div>
-        <div class="reward"><strong>+20 / kill</strong><span><code>!golem</code> / <code>!dog</code> 擊殺獎勵，有總上限</span></div>
-        <div class="reward"><strong>+500</strong><span><code>!totem</code> 成功救命</span></div>
+        <div class="reward hidden" hidden><strong>+50</strong><span>Minecraft 金錢獸 [Money Boss] 每位參與者；每隻 boss 最多 20 人 / 1000 占幣</span></div>
+        <div class="reward hidden" hidden><strong>+100</strong><span><code>!creeper</code> / <code>!zombie</code> / <code>!skeleton</code> / <code>!black</code> 成功擊殺 Jimpae</span></div>
+        <div class="reward hidden" hidden><strong>+300</strong><span><code>!tnt</code> / <code>!lightning</code> 成功擊殺 Jimpae</span></div>
+        <div class="reward hidden" hidden><strong>+25</strong><span><code>!anvil</code> 成功擊殺 Jimpae</span></div>
+        <div class="reward hidden" hidden><strong>+10</strong><span><code>!mcroll</code> 輪盤抽中擊殺類並成功擊殺 Jimpae</span></div>
+        <div class="reward hidden" hidden><strong>+20 / kill</strong><span><code>!golem</code> / <code>!dog</code> 擊殺獎勵，有總上限</span></div>
+        <div class="reward hidden" hidden><strong>+500</strong><span><code>!totem</code> 成功救命</span></div>
       </div>
     </section>
 
     <section class="section" id="commands">
       <div class="section-head"><div>
-        <h2>Commands 全清單</h2>
+        <h2>指令清單</h2>
         <p>直播入面常用 chat commands，按分類打開睇</p>
       </div></div>
+      <div class="cmd-filter">
+        <label class="visually-hidden" for="cmdSearch">搜尋指令</label>
+        <input id="cmdSearch" type="search" placeholder="搜尋指令，例如 !daily 或 賭盤" autocomplete="off" />
+      </div>
+      <p class="cmd-empty hidden" id="cmdEmpty">搵唔到符合嘅指令</p>
       <div class="details-list">
         <details class="cmd-details" open>
           <summary>占幣 [PTS / points]</summary>
@@ -174,7 +193,7 @@
             <div class="cmd-list"><code>!daily</code><code>!points</code></div>
           </div>
         </details>
-        <details class="cmd-details">
+        <details class="cmd-details hidden" hidden data-parked="true">
           <summary>Minecraft 兌換 [redeem]</summary>
           <div class="cmd-body">
             <p>用占幣觸發 Minecraft 直播事件；擊殺獎勵以直播當下規則為準。</p>
@@ -192,20 +211,20 @@
           <summary>換裝 / 裝備 [Stream Avatars]</summary>
           <div class="cmd-body">
             <p>開換裝頁改角色，或用占幣買裝備。</p>
-            <div class="cmd-list"><code>!buygear diana</code><code>!buygear mcpickaxe</code><code>Stream Avatars viewer</code></div>
+            <div class="cmd-list"><code>!buygear diana</code><code class="hidden" hidden>!buygear mcpickaxe</code><code>Stream Avatars viewer</code></div>
           </div>
         </details>
       </div>
     </section>
 
-    <section class="section" id="changelog">
+    <section class="section hidden" id="changelog" hidden>
       <div class="section-head"><div>
         <h2>更新日誌 / Patch Notes</h2>
       </div></div>
       <div class="details-list" id="patchNotesList"><div class="cmd-body">更新日誌載入中...</div></div>
     </section>
 
-    <section class="section" id="minecraft-menu">
+    <section class="section hidden" id="minecraft-menu" hidden>
       <div class="section-head"><div>
         <h2>Minecraft 兌換價目表</h2>
         <p>重點係：部分獎勵要成功擊殺 Jimpae 先會加占幣</p>
@@ -220,7 +239,7 @@
       <div class="callout">!mcroll 成本 15 占幣；每人 60 秒冷卻 [per-user cooldown]，全局 20 秒冷卻 [global cooldown]。!heal / !speed / 召喚動物主要係效果本身，冇固定擊殺加分。</div>
     </section>
 
-    <section class="section" id="tip-jar">
+    <section class="section hidden" id="tip-jar" hidden>
       <div class="section-head"><div>
         <h2>MC金錢獸點玩</h2>
         <p>Tip Jar 係直播入面嘅共同集資召喚金錢獸玩法</p>
@@ -271,7 +290,7 @@
 
     <section class="section" id="gear">
       <div class="section-head"><div>
-        <h2>哥布林換裝 / Stream Avatars</h2>
+        <h2>哥布林換裝</h2>
         <p>開啟 Stream Avatars 官方換裝頁，更換你嘅角色同裝備</p>
       </div></div>
       <div class="gear-launch-grid">
@@ -295,14 +314,14 @@
 
     <section class="section" id="faq">
       <div class="section-head"><div>
-        <h2>常見問題 FAQ</h2>
+        <h2>常見問題</h2>
         <p>如果系統一時未反應，通常先等一陣再試</p>
       </div></div>
       <div class="faq-grid">
         <div class="faq-card"><strong>點解我占幣未更新？</strong><span>通常係同步中。等一陣再重新搜尋自己個名。</span></div>
-        <div class="faq-card"><strong>點解 redeem 無反應？</strong><span>Server 忙、排隊、cooldown 或安全保護都可能令 redeem 延遲。</span></div>
+        <div class="faq-card hidden" hidden><strong>點解 redeem 無反應？</strong><span>Server 忙、排隊、cooldown 或安全保護都可能令 redeem 延遲。</span></div>
         <div class="faq-card"><strong>YouTube 名搵唔到？</strong><span>試下連 @ 一齊搜尋，或者用你 chat 入面顯示嘅名。</span></div>
-        <div class="faq-card"><strong>Twitch / YouTube 分會唔會合併？</strong><span>視乎系統身份配對；如果兩邊名唔同，可能會分開計。</span></div>
+        <div class="faq-card"><strong>Twitch / YouTube 分會唔會合併？</strong><span>一個花生證可以喺<a href="/profile">個人頁</a>同時連結 Twitch、YouTube 同 Discord。占幣、排行榜同裝備係按平台分開計，唔會加埋一齊；兩邊都連結到同一個個人頁之後，花生證 Season 就會一齊顯示。如果兩邊都有用但未喺個人頁連結，排行榜可能會見到兩個名。YouTube 登入驗證暫時未完成，連結 YouTube 可能暫時未用到。</span></div>
         <div class="faq-card"><strong>裝備點解未出現？</strong><span>Stream Avatars 可能要登入、同步或重新載入 viewer.</span></div>
         <div class="faq-card"><strong>規則同直播講法唔同？</strong><span>以直播當下規則為準。</span></div>
       </div>
@@ -333,24 +352,24 @@
               <h2>排行榜</h2>
               <p id="boardSub">頭 100 名</p>
             </div>
-            <span class="board-meta">Top 100</span>
+            <span class="board-meta" id="syncBottom">最後同步：載入中...</span>
           </div>
           <div class="players" id="players"></div>
         </section>
       </div>
     </section>
 
-    <section class="section" id="sync">
+    <section class="section hidden" id="sync" hidden>
       <div class="section-head"><div>
         <h2>同步狀態</h2>
         <p>Leaderboard 資料更新時間</p>
       </div></div>
       <div class="panel info">
-        <p class="subtitle" id="syncBottom">最後同步：載入中...</p>
+        <p class="subtitle">最後同步：載入中...</p>
       </div>
     </section>
 
-    <p class="legal-links"><a href="/privacy">Privacy Policy</a> · <a href="/terms">Terms of Service</a></p>
+    <p class="legal-links"><a href="/privacy">私隱政策</a> · <a href="/terms">服務條款</a></p>
     <a class="back-top" href="#top" aria-label="返回頂部">↑</a>
   </main>
 
@@ -380,22 +399,334 @@
       frame.src = `https://player.twitch.tv/?channel=jimpae&muted=true&${parents.map(p => `parent=${encodeURIComponent(p)}`).join('&')}`;
     }
 
-    function updateSchedule(){
+    const TWITCH_CHANNEL = 'https://www.twitch.tv/jimpae';
+    const TWITCH_UPTIME_URL = 'https://decapi.me/twitch/uptime/jimpae';
+    const TWITCH_STATUS_FALLBACK_URL = 'https://theystill.live/twitch/jimpae';
+    const YOUTUBE_LIVE_URL = 'https://www.youtube.com/@jimpae/live';
+    const YOUTUBE_STATUS_URL = 'https://theystill.live/yt/UC83EeYmQyroJD61psI0gqyQ';
+    const DEFAULT_SCHEDULE = {
+      timezone: 'Asia/Hong_Kong',
+      default_time: '20:00',
+      default_days: [2, 4, 0],
+      cancelled: [],
+      extras: [],
+      next_override: null
+    };
+    const DAY_LABELS = {0:'星期日',1:'星期一',2:'星期二',3:'星期三',4:'星期四',5:'星期五',6:'星期六'};
+    let scheduleConfig = {...DEFAULT_SCHEDULE};
+    let scheduleFetch = null;
+    let scheduleFetchedOk = false;
+
+    function asDateList(value){
+      return (Array.isArray(value) ? value : []).map(v => String(v || '').trim()).filter(v => /^\d{4}-\d{2}-\d{2}$/.test(v));
+    }
+    function asDayList(value){
+      const days = (Array.isArray(value) ? value : []).map(Number).filter(n => Number.isInteger(n) && n >= 0 && n <= 6);
+      return days.length ? [...new Set(days)] : DEFAULT_SCHEDULE.default_days.slice();
+    }
+    function normalizeSchedule(data){
+      if(!data || typeof data !== 'object' || Array.isArray(data)) return {...DEFAULT_SCHEDULE};
+      const extras = (Array.isArray(data.extras) ? data.extras : []).filter(item => item && typeof item === 'object' && /^\d{4}-\d{2}-\d{2}$/.test(String(item.date || '')));
+      let override = data.next_override && typeof data.next_override === 'object' && !Array.isArray(data.next_override) ? data.next_override : null;
+      if(override && !/^\d{4}-\d{2}-\d{2}$/.test(String(override.date || ''))) override = null;
+      return {
+        timezone: typeof data.timezone === 'string' && data.timezone ? data.timezone : DEFAULT_SCHEDULE.timezone,
+        default_time: /^\d{1,2}:\d{2}$/.test(String(data.default_time || '')) ? data.default_time : DEFAULT_SCHEDULE.default_time,
+        default_days: asDayList(data.default_days),
+        cancelled: asDateList(data.cancelled),
+        extras,
+        next_override: override
+      };
+    }
+    async function loadScheduleConfig(){
+      if(scheduleFetchedOk) return scheduleConfig;
+      if(scheduleFetch) return scheduleFetch;
+      scheduleFetch = (async () => {
+        const data = await fetchWithTimeout('assets/schedule.json', true);
+        scheduleFetch = null;
+        if(data){
+          scheduleConfig = normalizeSchedule(data);
+          scheduleFetchedOk = true;
+        }
+        return scheduleConfig;
+      })();
+      return scheduleFetch;
+    }
+    function formatStreamTime(hhmm){
+      const match = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || '20:00'));
+      if(!match) return '8:00 PM HKT';
+      const hour = Number(match[1]);
+      const minute = match[2];
+      const suffix = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      return `${hour12}:${minute} ${suffix} HKT`;
+    }
+    function cadenceFromDays(days){
+      const short = {0:'日',1:'一',2:'二',3:'三',4:'四',5:'五',6:'六'};
+      const names = [...asDayList(days)].sort((a,b) => (a === 0 ? 7 : a) - (b === 0 ? 7 : b)).map(d => short[d]);
+      if(!names.length) return '逢星期二、四、日開台';
+      if(names.length === 1) return `逢星期${names[0]}開台`;
+      return `逢星期${names[0]}、${names.slice(1).join('、')}開台`;
+    }
+    function addCalendarDays(dateStr, days){
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const utc = new Date(Date.UTC(year, month - 1, day + days));
+      return `${utc.getUTCFullYear()}-${String(utc.getUTCMonth() + 1).padStart(2,'0')}-${String(utc.getUTCDate()).padStart(2,'0')}`;
+    }
+    function weekdayOfDate(dateStr){
+      const [year, month, day] = dateStr.split('-').map(Number);
+      return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+    }
+    function hongKongParts(date){
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: (scheduleConfig && scheduleConfig.timezone) || 'Asia/Hong_Kong',
+        weekday: 'short',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).formatToParts(date || new Date()).reduce((a,p)=>(a[p.type]=p.value,a),{});
+    }
+    function matchStreamDay(config, dateStr){
+      const extra = (config.extras || []).find(item => item.date === dateStr);
+      if(extra) return { extra };
+      if((config.cancelled || []).includes(dateStr)) return null;
+      if((config.default_days || []).includes(weekdayOfDate(dateStr))) return { default: true };
+      return null;
+    }
+    function nextStreamInfo(date){
+      const config = scheduleConfig || DEFAULT_SCHEDULE;
+      const parts = hongKongParts(date);
+      const todayStr = `${parts.year}-${parts.month}-${parts.day}`;
+      const override = config.next_override;
+      // Keep showing that date through the end of the HKT calendar day, same rule as 今晚.
+      if(override && override.date >= todayStr){
+        const isTonight = override.date === todayStr;
+        return {
+          isTonight,
+          label: override.label || (isTonight ? '今晚' : (DAY_LABELS[weekdayOfDate(override.date)] || override.date)),
+          time: formatStreamTime(override.time || config.default_time)
+        };
+      }
+      for(let i=0;i<60;i++){
+        const dateStr = addCalendarDays(todayStr, i);
+        const hit = matchStreamDay(config, dateStr);
+        if(!hit) continue;
+        const isTonight = i === 0;
+        return {
+          isTonight,
+          label: isTonight ? '今晚' : DAY_LABELS[weekdayOfDate(dateStr)],
+          time: formatStreamTime((hit.extra && hit.extra.time) || config.default_time)
+        };
+      }
+      return { isTonight:false, label:'下次', time: formatStreamTime(config.default_time) };
+    }
+    function extLink(href, text){
+      return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener">${text}</a>`;
+    }
+    function isHttpUrl(value){
+      return typeof value === 'string' && /^https?:\/\//i.test(value);
+    }
+    function applyStreamStatus(status){
       const nextStream = $('nextStream');
       if(!nextStream) return;
-      const now = new Date();
-      const parts = new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Hong_Kong',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(now).reduce((a,p)=>(a[p.type]=p.value,a),{});
-      const weekdayIdx = {Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
-      const streamDays = [2,4,0];
-      const h = Number(parts.hour), m = Number(parts.minute);
-      const todayIdx = weekdayIdx[parts.weekday];
-      let add = 0;
-      for(let i=0;i<8;i++){
-        const d=(todayIdx+i)%7;
-        if(streamDays.includes(d) && !(i===0 && (h>20 || (h===20 && m>=0)))){ add=i; break; }
+      const timeEl = $('nextStreamTime');
+      const labelEl = $('scheduleLabel');
+      const card = $('scheduleCard');
+      const navMeta = $('navMeta') || document.querySelector('.nav-meta');
+      const cadence = $('scheduleCadence');
+      const sched = nextStreamInfo();
+      const twitchLive = !!(status && status.twitch);
+      const youtubeLive = !!(status && status.youtube);
+      const isLive = twitchLive || youtubeLive;
+      const youtubeHref = isHttpUrl(status && status.youtubeUrl) ? status.youtubeUrl : YOUTUBE_LIVE_URL;
+      const twitchHref = TWITCH_CHANNEL;
+      const sep = '<span class="live-sep" aria-hidden="true"> · </span>';
+      card?.classList.toggle('is-live', isLive);
+      navMeta?.classList.toggle('is-live', isLive);
+      if(cadence) cadence.textContent = cadenceFromDays(scheduleConfig.default_days);
+      if(isLive){
+        if(labelEl) labelEl.textContent = '直播狀態';
+        if(twitchLive && youtubeLive){
+          nextStream.textContent = '而家開緊';
+          if(timeEl) timeEl.innerHTML = extLink(twitchHref, '去 Twitch 睇') + sep + extLink(youtubeHref, '去 YouTube 睇');
+          if(navMeta) navMeta.innerHTML = '<span>而家開緊</span>' + sep + extLink(twitchHref, 'Twitch') + sep + extLink(youtubeHref, 'YouTube');
+        }else if(twitchLive){
+          nextStream.innerHTML = extLink(twitchHref, '而家開緊');
+          if(timeEl) timeEl.innerHTML = extLink(twitchHref, '去 Twitch 睇');
+          if(navMeta) navMeta.innerHTML = extLink(twitchHref, '而家開緊');
+        }else{
+          nextStream.innerHTML = extLink(youtubeHref, '而家開緊');
+          if(timeEl) timeEl.innerHTML = extLink(youtubeHref, '去 YouTube 睇');
+          if(navMeta) navMeta.innerHTML = extLink(youtubeHref, '而家開緊');
+        }
+      }else{
+        if(labelEl) labelEl.textContent = '下次直播';
+        nextStream.textContent = sched.label;
+        if(timeEl) timeEl.textContent = sched.time;
+        if(navMeta) navMeta.textContent = `${sched.label} · ${sched.time}`;
       }
-      const labels={0:'星期日',2:'星期二',4:'星期四'};
-      nextStream.textContent = add===0 ? '今晚' : labels[(todayIdx+add)%7];
+    }
+    async function fetchWithTimeout(url, asJson){
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 4000);
+      try{
+        const res = await fetch(url, {signal: ctrl.signal, cache: 'no-store'});
+        if(!res.ok) return null;
+        if(asJson){
+          try{ return await res.json(); }
+          catch(e){ return null; }
+        }
+        const text = String(await res.text() || '').trim();
+        return text || null;
+      }catch(e){
+        return null;
+      }finally{
+        clearTimeout(timer);
+      }
+    }
+    function parseTheystill(data){
+      if(!data || typeof data !== 'object' || Array.isArray(data)) return null;
+      if(data.found === false) return {live:false, url:null};
+      if(data.live === true) return {live:true, url: isHttpUrl(data.url) ? data.url : null};
+      if(data.live === false) return {live:false, url: isHttpUrl(data.url) ? data.url : null};
+      return null;
+    }
+    async function fetchTwitchLive(){
+      const text = await fetchWithTimeout(TWITCH_UPTIME_URL, false);
+      if(text){
+        if(/jimpae is offline/i.test(text)) return {live:false, url:TWITCH_CHANNEL};
+        return {live:true, url:TWITCH_CHANNEL};
+      }
+      return parseTheystill(await fetchWithTimeout(TWITCH_STATUS_FALLBACK_URL, true));
+    }
+    async function fetchYouTubeLive(){
+      return parseTheystill(await fetchWithTimeout(YOUTUBE_STATUS_URL, true));
+    }
+    let lastKnownStatus = null;
+    let schedulePainted = false;
+    async function updateSchedule(){
+      if(!$('nextStream')) return;
+      if(!schedulePainted){
+        applyStreamStatus({twitch:false, youtube:false});
+        schedulePainted = true;
+      }
+      const [twitch, youtube] = await Promise.all([fetchTwitchLive(), fetchYouTubeLive(), loadScheduleConfig()]);
+      if(twitch === null && youtube === null){
+        applyStreamStatus(lastKnownStatus || {twitch:false, youtube:false});
+        return;
+      }
+      const status = {
+        twitch: twitch?.live === true,
+        youtube: youtube?.live === true,
+        youtubeUrl: (youtube && youtube.live === true && youtube.url) ? youtube.url : null
+      };
+      lastKnownStatus = status;
+      applyStreamStatus(status);
+    }
+
+    const PILLAR_CACHE_KEY = 'jimpae.pillarLatest.v1';
+    const PILLAR_CACHE_MS = 45 * 60 * 1000;
+    function readPillarCache(){
+      try{ return JSON.parse(localStorage.getItem(PILLAR_CACHE_KEY) || '{}'); }
+      catch(e){ return {}; }
+    }
+    function writePillarCacheItem(playlistId, item){
+      try{
+        const all = readPillarCache();
+        all[playlistId] = {...item, savedAt: Date.now()};
+        localStorage.setItem(PILLAR_CACHE_KEY, JSON.stringify(all));
+      }catch(e){}
+    }
+    function cachedPillar(playlistId){
+      const item = readPillarCache()[playlistId];
+      if(!item || !item.savedAt || (Date.now() - item.savedAt) > PILLAR_CACHE_MS) return null;
+      if(!item.title || !item.url) return null;
+      return item;
+    }
+    function applyPillarLatest(card, latest){
+      if(!card || !latest) return;
+      const img = card.querySelector('.pillar-thumb');
+      if(img && isHttpUrl(latest.thumb)) img.src = latest.thumb;
+      if(isHttpUrl(latest.url)) card.href = latest.url;
+      let line = card.querySelector('.pillar-latest');
+      if(!line){
+        line = document.createElement('span');
+        line.className = 'pillar-latest';
+        card.appendChild(line);
+      }
+      line.textContent = `最新：${latest.title}`;
+    }
+    function parseRss2JsonItem(data){
+      if(!data || data.status !== 'ok' || !Array.isArray(data.items) || !data.items.length) return null;
+      const item = data.items[0] || {};
+      const rawLink = String(item.link || item.url || '');
+      const idMatch = `${rawLink} ${item.guid || ''} ${item.thumbnail || ''}`.match(/(?:v=|yt:video:|vi\/)([\w-]{11})/);
+      const videoId = idMatch ? idMatch[1] : null;
+      const url = isHttpUrl(rawLink) ? rawLink.replace(/&.*$/, '') : (videoId ? `https://www.youtube.com/watch?v=${videoId}` : '');
+      const thumb = isHttpUrl(item.thumbnail) ? item.thumbnail : (videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : '');
+      const title = String(item.title || '').trim();
+      if(!title || !isHttpUrl(url)) return null;
+      return { title, url, thumb };
+    }
+    async function fetchLatestFromPlaylist(playlistId){
+      const rss = `https://www.youtube.com/feeds/videos.xml?playlist_id=${encodeURIComponent(playlistId)}`;
+      const data = await fetchWithTimeout(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rss)}`, true);
+      return parseRss2JsonItem(data);
+    }
+    async function loadContentPillars(){
+      const cards = [...document.querySelectorAll('.pillar-card[data-playlist-id]')];
+      if(!cards.length) return;
+      const pending = [];
+      cards.forEach(card => {
+        const id = card.dataset.playlistId;
+        const cached = cachedPillar(id);
+        if(cached){
+          applyPillarLatest(card, cached);
+          return;
+        }
+        pending.push((async () => {
+          const latest = await fetchLatestFromPlaylist(id);
+          if(!latest) return;
+          writePillarCacheItem(id, latest);
+          applyPillarLatest(card, latest);
+        })());
+      });
+      if(pending.length) await Promise.all(pending);
+    }
+
+    function filterCommands(){
+      const input = $('cmdSearch');
+      const empty = $('cmdEmpty');
+      const groups = [...document.querySelectorAll('#commands .cmd-details')];
+      if(!input || !groups.length) return;
+      const q = input.value.trim().toLowerCase();
+      let shown = 0;
+      groups.forEach((details, index) => {
+        if(details.dataset.parked === 'true'){
+          details.classList.add('hidden');
+          details.hidden = true;
+          details.open = false;
+          return;
+        }
+        if(!q){
+          details.classList.remove('is-hidden');
+          details.hidden = false;
+          details.open = index === 0;
+          return;
+        }
+        const text = (details.textContent || '').toLowerCase();
+        const match = text.includes(q);
+        details.classList.toggle('is-hidden', !match);
+        details.hidden = !match;
+        if(match){
+          details.open = true;
+          shown += 1;
+        }
+      });
+      if(empty) empty.classList.toggle('hidden', !q || shown > 0);
     }
     const publicAliases = {
       yukili030: ['hkeggtart030'],
@@ -475,6 +806,7 @@
       setTwitchEmbed();
       loadGearShop();
       updateSchedule();
+      loadContentPillars();
       loadPatchNotes();
       try{
         let data;
@@ -499,6 +831,8 @@
 
     $('search').addEventListener('input', updateSearch);
     document.querySelector('.jump-btn')?.addEventListener('click', () => setTimeout(() => $('search')?.focus(), 450));
+    $('cmdSearch')?.addEventListener('input', filterCommands);
+    setInterval(updateSchedule, 60000);
     init();
   </script>
 </body>
